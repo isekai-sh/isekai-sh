@@ -105,7 +105,7 @@ export default defineConfig({
         {
           icon: "github",
           label: "GitHub",
-          href: "https://github.com/isekai-sh/isekai-core",
+          href: "https://github.com/isekai-sh/",
         },
       ],
     }),
