@@ -1,0 +1,61 @@
+---
+title: One Click Method
+description: Deploy Isekai using open source PaaS software like Coolify or Dokploy
+---
+
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+Both [Coolify](https://coolify.io/) and [Dokploy](https://dokploy.com/) are open-source, self-hosted alternatives to Heroku/Vercel. They make deploying Isekai Core incredibly simple by supporting our docker-compose.yml file natively.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- [DeviantArt Application](/requirements/deviantart-application)
+- [Cloudflare R2 Storage](/requirements/cloudflare-r2-setup)
+- A domain name
+- A VPS running Coolify or Dokploy
+
+## Deploying on Coolify
+<Steps>
+  1. Create Resource 
+        - [Install Coolify](https://coolify.io/docs/get-started/installation) in your VPS
+        - Login and create a new project
+        - Click + New Resource
+        - Choose Git Repository (Public)
+        - Enter the URL:
+            ```ini
+            https://github.com/isekai-sh/isekai-core
+            ```
+        - Branch: main
+        - Build Pack: Docker Compose
+  2. Copy [environment variables](/resources/environment-variables) and fill in your values in your Environment Variables tab
+  3. Point root level domain (e.g. example.com) to your frontend app and api subdomain (e.g. api.example.com) to backend app accordingly. You need to configure your DNS to point your domain to Coolify server's IP address
+  4. Make sure you enable SSL in your Coolify domain configuration
+  5. Click deploy and wait for the apps to be deployed automatically
+  6. You can access your Isekai app in your domain
+</Steps>
+
+## Deploying on Dokploy
+
+<Steps>
+  1. Create Application
+      - Install Dokploy on your VPS
+      - Go to your dashboard -> Create Service -> Compose
+      - Name: isekai-core
+      - Repository: https://github.com/isekai-sh/isekai-core
+      - Compose Path: ./docker-compose.yml
+  2. Paste your .env content into the Environment tab
+  3. Since Dokploy uses Traefik, you must map the domains manually in the Domains tab:
+      - Add Domain -> example.com -> Service frontend -> Port 80.
+      - Add Domain -> api.example.com -> Service backend -> Port 4000.
+  4. Deploy
+</Steps>
+
+<Aside> 
+  If your server is already using port 3000 or 4000, edit the Compose file in Dokploy to remove the ports: section. Dokploy handles routing internally via the container network, so exposing ports to the host is often unnecessary.
+</Aside>
+
+## Backup Your Database
+
+We strongly recommend backing up your PostgreSQL database. Both Coolify and Dokploy offer easy ways to backup your database to S3-compatible storage buckets. Refer to the [Coolify backup guide](https://coolify.io/docs/knowledge-base/backup) and [Dokploy backup guide](https://docs.dokploy.com/docs/core/backups) to set up an automatic backup strategy.

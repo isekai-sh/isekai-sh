@@ -1,0 +1,85 @@
+---
+title: Architecture
+---
+import { Steps, Aside, FileTree } from "@astrojs/starlight/components";
+
+Isekai Core is a distributed system built on the Producer-Consumer pattern. This ensures that heavy tasks (like image processing or uploading 50MB files to DeviantArt) never block the user interface.
+
+## System Components
+
+### 1. The Backend API (apps/isekai-backend)
+
+**Role:** The "Producer".
+
+**Stack:** Node.js, Express, BullMQ.
+
+**Responsibilities:**
+
+- **State Management**: It is the only service that writes to the Draft, Schedule, and User database tables directly for user-facing operations.
+- **Authentication**: Handles the OAuth2 flow with DeviantArt and session management via Redis.
+- **Scheduling**: A cron-like internal ticker runs every minute to find Draft records where `scheduledAt <= NOW()` and pushes them to the queue.
+
+### 2. The Publisher Worker (apps/isekai-publisher)
+
+**Role:** The "Consumer".
+
+**Stack:** Node.js, BullMQ Worker.
+
+**Isolation:** This service runs independently. You can stop it, update it, or scale it to 10 instances without taking down the main website.
+
+**Responsibilities:**
+
+- Executes the actual HTTP requests to DeviantArt.
+- Refreshes expired OAuth tokens automatically.
+- Updates the database status from `SUBMITTING` to `PUBLISHED` (or `FAILED`).
+
+### 3. The Data Layer
+
+- **PostgreSQL**: The source of truth for application data.
+- **Redis**: Used for three distinct purposes:
+  - **Session Store**: Holds user login sessions.
+  - **Job Queues**: Persists BullMQ job data.
+  - **Caching**: Caches expensive API calls (like DeviantArt Gallery folders) to avoid hitting rate limits.
+- **Cloudflare R2**: Object storage for artwork. Files are uploaded directly from the browser (via Presigned URLs) to R2 to save Backend bandwidth.
+
+## The Queue System
+
+We use BullMQ to manage background tasks. There are three primary queues:
+
+| Queue Name | Priority | Producer | Consumer | Description |
+|------------|----------|----------|----------|-------------|
+| `deviation-publisher` | High | Backend | Publisher | Handles the actual posting of artwork to DeviantArt. |
+| `token-maintenance` | Critical | Backend | Publisher | Refreshes OAuth tokens 1 hour before expiry. If this fails, publishing fails. |
+| `r2-cleanup` | Low | Backend | Publisher | Garbage collection for R2. Deletes images associated with deleted drafts. |
+
+## Security Architecture
+
+### Token Encryption
+
+We store DeviantArt Access Tokens and Refresh Tokens in the database, but they are never stored in plain text.
+
+- **Algorithm**: AES-256-CTR.
+- **Key**: The `ENCRYPTION_KEY` environment variable (32-byte hex).
+
+**Flow:**
+
+<Steps>
+
+1. User logs in via OAuth.
+
+2. Backend receives `access_token`.
+
+3. Backend encrypts it using `crypto.createCipheriv`.
+
+4. Encrypted buffer is stored in Postgres.
+
+5. When Publisher needs to post, it decrypts the token on-the-fly.
+
+</Steps>
+
+### Hybrid Authentication
+
+The API supports two modes of authentication, handled by the `hybrid-auth` middleware:
+
+- **Browser Session**: Standard `connect.sid` cookie for frontend users.
+- **API Key**: `X-API-KEY` header for external tools (like the ComfyUI Node). API keys are hashed in the database.

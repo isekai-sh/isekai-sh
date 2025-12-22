@@ -1,0 +1,60 @@
+---
+title: Troubleshooting
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+Common issues and how to resolve them.
+
+## "Upload Failed" or CORS Errors
+
+**Symptom:** You try to upload an image in the Draft editor, but it immediately turns red or fails. Browser console shows a CORS error.
+
+**Fix:** You missed Step 2 in the [Cloudflare R2 Setup](/requirements/cloudflare-r2-setup/). You MUST configure the CORS policy on your bucket to allow your frontend domain to send PUT requests.
+
+## DeviantArt Login Loop or "Invalid Redirect URI"
+
+**Symptom:** Clicking "Login with DeviantArt" redirects you to DA, but then gives an error or redirects back without logging in.
+
+**Fix:**
+
+<Steps>
+
+1. Check your DeviantArt Developers Portal.
+
+2. Ensure the Redirect URI matches exactly.
+
+   - If your site is `https://isekai.com`, the URI must be `https://api.isekai.com/api/auth/deviantart/callback`.
+   - Note the `https` and the specific path.
+
+3. Ensure your `DEVIANTART_REDIRECT_URI` env var matches that value exactly.
+
+</Steps>
+
+## Scheduled Posts Not Publishing
+
+**Symptom:** A post was scheduled for 10:00 AM, but it's now 10:05 AM and it's still "Scheduled".
+
+**Fix:**
+
+- Check the Publisher container logs.
+- Is the container running?
+- Check the timezone. The scheduler runs in UTC. Ensure you set your timezone correctly in the Settings page.
+- If the logs show "Job Stalled", restart the publisher container.
+
+## "Rate Limit Exceeded"
+
+**Symptom:** The app says you are checking DA too fast.
+
+**Fix:** The app has a built-in rate limiter (Leaky Bucket) and Circuit Breaker.
+
+- Wait 5 minutes. The Circuit Breaker will reset.
+- If this happens often, increase `RATE_LIMITER_BASE_DELAY_MS` in your environment variables (default is 3000ms).
+
+## Database Connection Errors
+
+**Symptom:** `P1001: Can't reach database server`.
+
+**Fix:**
+
+- **Docker:** Ensure the postgres container is healthy.
+- **Managed DB:** Check if your VPS IP is allowed in your database provider's "Trusted Sources" or firewall settings.

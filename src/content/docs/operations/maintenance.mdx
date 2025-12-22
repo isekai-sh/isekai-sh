@@ -1,0 +1,100 @@
+---
+title: Maintenance
+---
+import { Steps, Aside, Code, Tabs, TabItem } from "@astrojs/starlight/components";
+
+Once Isekai Core is running, you'll need to perform occasional maintenance tasks.
+
+## Updating Isekai Core
+
+We release updates frequently with new features and bug fixes. Updating your Docker-based installation is simple.
+
+<Tabs>
+<TabItem label="Docker Compose (VPS)">
+
+<Steps>
+
+1. **Pull the latest images**
+
+   ```bash
+   docker compose pull
+   ```
+
+2. **Recreate containers (this minimizes downtime)**
+
+   ```bash
+   docker compose up -d
+   ```
+
+3. **Prune old images (optional, saves disk space)**
+
+   ```bash
+   docker image prune -f
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="Coolify / Dokploy">
+
+<Steps>
+
+1. Go to your resource dashboard.
+
+2. Click the **Redeploy** or **Force Rebuild** button.
+
+3. The system will automatically pull the latest tag and restart the containers.
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+### Database Migrations
+
+<Aside>
+In most cases, the application will automatically run necessary database migrations when the new container starts. If you encounter database errors after an update, check the container logs.
+</Aside>
+
+## Backups
+
+Your data lives in two places:
+
+- **PostgreSQL Database**: Contains all user data, draft text, schedules, and automation rules.
+- **Cloudflare R2**: Contains the actual image files.
+
+### What to Backup
+
+You primarily need to backup the PostgreSQL Database and your `.env` file.
+
+- **R2 Buckets**: Cloudflare is highly durable, but you can sync your bucket to another provider if paranoid.
+- **Redis**: Strictly cache and temporary job queues. No backup needed.
+
+### Automated Postgres Backups (Docker)
+
+If you are using the default `docker-compose.yml`, you can create a cron job to backup the database container:
+
+```bash
+# Backup script example
+docker exec isekai-postgres pg_dump -U isekai isekai > /path/to/backups/isekai_$(date +%F).sql
+```
+
+### Restoring Data
+
+To restore a database dump:
+
+<Steps>
+
+1. **Stop the app first**
+
+   ```bash
+   docker stop isekai-backend
+   ```
+
+2. **Restore command**
+
+   ```bash
+   cat backup.sql | docker exec -i isekai-postgres psql -U isekai
+   ```
+
+</Steps>

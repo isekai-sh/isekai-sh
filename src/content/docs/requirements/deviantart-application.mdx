@@ -1,0 +1,66 @@
+---
+title: DeviantArt Application
+---
+
+import { Steps } from "@astrojs/starlight/components";
+
+To allow Isekai Core to post on your behalf, you need to create an application in the DeviantArt Studio.
+
+## Step-by-Step Guide
+
+<Steps>
+
+1. Log in to your DeviantArt account
+
+2. Navigate to the [DeviantArt Studio](https://deviantart.com/studio/apps)
+
+3. Click "Submit Your Application"
+
+4. Fill in the form:
+
+    Title: Isekai (or your preferred name). 
+
+
+    #### For local deployment app:
+
+    OAuth2 Redirect URI:
+    ```text
+    http://localhost:4000/api/auth/deviantart/callback
+    ```
+
+    Original URLs Whitelist:
+    ```text 
+    http://localhost:3000, http://localhost:4000
+    ```
+
+    #### For deployment using domain name app:
+
+    OAuth2 Redirect URI:
+    ```text 
+    https://api.example.com/api/auth/deviantart/callback
+    ```
+
+    Original URLs Whitelist:
+    ```text 
+    https://example.com
+    ```
+
+    __Note: Replace example.com with your actual domain name.__
+
+
+
+5. Click Submit 
+</Steps>
+
+## Get Your Credentials
+
+Once created, you will see a dashboard for your app. Copy the following two values:
+```text
+client_id     → Mapped to DEVIANTART_CLIENT_ID
+client_secret → Mapped to DEVIANTART_CLIENT_SECRET
+```
+
+## Troubleshooting
+
+#### Invalid Redirect URI
+This happens if the URL in your browser address bar during login does not exactly match the one you entered in the OAuth2 Redirect URI field. Check for http vs https and trailing slashes.

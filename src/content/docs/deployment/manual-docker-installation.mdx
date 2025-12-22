@@ -1,0 +1,168 @@
+---
+title: Manual Docker Installation
+description: Deploy Isekai in a Virtual Private Server running Docker
+---
+
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+This guide covers deploying Isekai Core on a barebone Linux VPS (Virtual Private Server) like Digital Ocean Droplet, Linode, Hetzner, or AWS EC2.
+
+## Prerequisites
+
+Before you begin, ensure you have:
+
+- A Linux server (Ubuntu 22.04 LTS recommended).
+- A domain name pointing to your server's IP.
+- Docker Engine and Docker Compose installed.
+
+## Server Preparation
+
+SSH into your server and install Docker:
+
+```bash
+# Update packages
+sudo apt update && sudo apt upgrade -y
+
+# Install Docker (Official Script)
+curl -fsSL [https://get.docker.com](https://get.docker.com) -o get-docker.sh
+sudo sh get-docker.sh
+
+# Start Docker
+sudo systemctl enable --now docker
+```
+
+## Setup Project Files
+
+You do not need to clone the entire repository. You only need the Docker Compose file and the Environment Variables file.
+
+```bash
+# Create directory
+mkdir isekai-core && cd isekai-core
+
+# Download production compose file
+wget [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml)
+
+# Download env example
+wget [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example) -O .env
+```
+
+## Configuration
+
+<Steps>
+
+  1. Edit your environment variables:
+
+      ```bash
+      nano .env
+      ```
+
+  2. Start services:
+
+      ```bash
+      docker compose up -d
+      ```
+
+  3. Check logs to ensure everything is running:
+
+      ```bash
+      docker compose logs -f
+      ```
+
+</Steps>
+
+## Reverse Proxy
+
+By default, the app exposes ports 3000 (Frontend) and 4000 (Backend). Do not expose these directly to the internet via HTTP. Use a reverse proxy to handle HTTPS.
+
+### Option A: Caddy
+
+<Steps>
+1. Install Caddy:
+    ```bash
+    sudo apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+    curl -1sLf '[https://dl.cloudsmith.io/public/caddy/stable/gpg.key](https://dl.cloudsmith.io/public/caddy/stable/gpg.key)' | sudo gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+    curl -1sLf '[https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt](https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt)' | sudo tee /etc/apt/sources.list.d/caddy-stable.list
+    sudo apt update
+    sudo apt install caddy
+    ```
+
+2. Create Caddyfile:
+    ```bash
+    nano /etc/caddy/Caddyfile
+    ```
+
+2. Paste the following (adjust to your domain name):
+    ```conf
+    example.com {
+      reverse_proxy localhost:3000
+    }
+
+    api.example.com {
+      reverse_proxy localhost:4000
+    }
+    ```
+
+  4. Restart Caddy:
+      ```bash
+      sudo systemctl restart caddy
+      ```
+
+  5. Test deployment by visiting your domain.
+
+</Steps>
+
+### Option B: Nginx + Certbot
+<Steps>
+
+1. Install Nginx:
+    ```bash
+    sudo apt install nginx certbot python3-certbot-nginx
+    ```
+
+2. Configure Nginx block:
+    ```bash
+    sudo nano /etc/nginx/sites-available/isekai
+    ```
+    Paste the following configuration (replace example.com with your actual domain):
+    ```conf
+    server {
+        server_name example.com;
+
+        location / {
+            proxy_pass http://localhost:3000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    server {
+        server_name api.example.com;
+
+        location / {
+            proxy_pass http://localhost:4000;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+        }
+    }
+    ```
+
+    Enable the site and test the configuration:
+    ```bash
+    sudo ln -s /etc/nginx/sites-available/isekai /etc/nginx/sites-enabled/
+    sudo nginx -t
+    ```
+
+
+3. Configure certbot
+    ```bash
+    sudo certbot --nginx
+    ```
+4. Restart Nginx
+    ```bash
+    sudo systemctl restart nginx
+    ```
+5. Test deployment by visiting your domain.
+</Steps> 

@@ -1,0 +1,42 @@
+---
+title: Documentation
+description: Comprehensive guides and references for installing, configuring, and managing your self-hosted Isekai platform.
+---
+import { Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+![Isekai](/isekai-browse.png)
+
+This hub serves as your central resource for installing, configuring, managing, and extending your self-hosted art management platform.
+
+Whether you are an artist looking to streamline your workflow or a developer wanting to contribute, you will find the guides you need here.
+
+## Quick Start
+
+<CardGrid>
+  <Card title="Get Started" icon="rocket">
+    New to Isekai? Start with the [basics](/overview/start-here) to understand what Isekai is and how it works.
+  </Card>
+  <Card title="Deploy" icon="setting">
+    Ready to deploy? Choose from our [deployment strategies](/deployment) ranging from one-click installations to high-availability setups.
+  </Card>
+  <Card title="Requirements" icon="approve-check">
+    Set up your [DeviantArt Application](/requirements/deviantart-application) and [Cloudflare R2 Storage](/requirements/cloudflare-r2-setup) before deploying.
+  </Card>
+  <Card title="Operations" icon="laptop">
+    Learn how to [maintain](/operations/maintenance), [troubleshoot](/operations/troubleshooting), and follow best [etiquette](/operations/etiquette) practices.
+  </Card>
+</CardGrid>
+
+## Resources
+
+<LinkCard
+  title="Environment Variables Reference"
+  description="Complete reference of all configuration options available for Isekai Core."
+  href="/resources/environment-variables"
+/>
+
+<LinkCard
+  title="Contributing to Isekai"
+  description="Want to contribute? Learn about the architecture, development setup, and how to get started."
+  href="/contributing/overview"
+/>

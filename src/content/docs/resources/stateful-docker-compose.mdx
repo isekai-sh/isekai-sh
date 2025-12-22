@@ -1,0 +1,263 @@
+---
+title: Stateful Docker Compose
+description: Docker Compose file for deploying Isekai with persistent storage services
+---
+import { Aside } from "@astrojs/starlight/components";
+
+This Docker Compose configuration runs **all services** including PostgreSQL and Redis as containers. This is the recommended setup for:
+
+- VPS deployments (Digital Ocean, Linode, Hetzner)
+- Local installations
+- One-click deployments (Coolify, Dokploy)
+
+<Aside type="tip">
+Data persists in Docker volumes (`postgres_data` and `redis_data`). Make sure to back up these volumes regularly.
+</Aside>
+
+## When to Use This Configuration
+
+Use this configuration when:
+- You want a simple, all-in-one deployment
+- You don't have access to managed databases
+- You want to minimize external dependencies
+- You're deploying on a single VPS or local machine
+
+For production environments with high availability requirements, consider using the [Stateless Docker Compose](/resources/stateless-docker-compose) configuration with managed databases instead.
+
+## Configuration File
+
+```yml
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: isekai-postgres
+    environment:
+      POSTGRES_USER: isekai
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-isekai}
+      POSTGRES_DB: isekai
+    ports:
+      - '${POSTGRES_PORT:-5433}:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U isekai']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - isekai-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: isekai-redis
+    command: redis-server --appendonly yes --appendfsync everysec
+    ports:
+      - '${REDIS_PORT:-6379}:6379'
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+    networks:
+      - isekai-network
+
+  backend:
+    image: ghcr.io/isekai-sh/isekai-backend:${IMAGE_TAG:-latest}
+    container_name: isekai-backend
+    ports:
+      - '${BACKEND_PORT:-4000}:4000'
+    environment:
+      # Database & Cache
+      DATABASE_URL: postgresql://${POSTGRES_USER:-isekai}:${POSTGRES_PASSWORD:-isekai}@postgres:5432/${POSTGRES_DB:-isekai}
+      REDIS_URL: redis://redis:6379
+
+      # URLs
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      PORT: 4000
+      NODE_ENV: production
+
+      # Security (CHANGE THESE!)
+      SESSION_SECRET: ${SESSION_SECRET}
+      ENCRYPTION_KEY: ${ENCRYPTION_KEY}
+      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+      SESSION_MAX_AGE_DAYS: ${SESSION_MAX_AGE_DAYS:-7}
+      REFRESH_TOKEN_EXPIRY_DAYS: ${REFRESH_TOKEN_EXPIRY_DAYS:-90}
+
+      # DeviantArt OAuth (REQUIRED)
+      DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
+      DEVIANTART_CLIENT_SECRET: ${DEVIANTART_CLIENT_SECRET}
+      DEVIANTART_REDIRECT_URI: ${DEVIANTART_REDIRECT_URI:-http://localhost:4000/api/auth/deviantart/callback}
+
+      # Cloudflare R2 Storage (REQUIRED)
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-isekai-uploads}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+
+      # Session Storage
+      SESSION_STORE: ${SESSION_STORE:-redis}
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - isekai-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4000/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  publisher:
+    image: ghcr.io/isekai-sh/isekai-publisher:${IMAGE_TAG:-latest}
+    container_name: isekai-publisher
+    ports:
+      - '${PUBLISHER_HEALTH_PORT:-8000}:8000'
+    environment:
+      # Database & Cache
+      DATABASE_URL: postgresql://${POSTGRES_USER:-isekai}:${POSTGRES_PASSWORD:-isekai}@postgres:5432/${POSTGRES_DB:-isekai}
+      REDIS_URL: redis://redis:6379
+      NODE_ENV: production
+
+      # DeviantArt OAuth (same credentials as backend)
+      DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
+      DEVIANTART_CLIENT_SECRET: ${DEVIANTART_CLIENT_SECRET}
+
+      # Cloudflare R2 Storage
+      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
+      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
+      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
+      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-isekai-uploads}
+      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+
+      # Publisher Configuration
+      PUBLISHER_CONCURRENCY: ${PUBLISHER_CONCURRENCY:-5}
+      PUBLISHER_MAX_ATTEMPTS: ${PUBLISHER_MAX_ATTEMPTS:-7}
+      PUBLISHER_JOB_TIMEOUT_MS: ${PUBLISHER_JOB_TIMEOUT_MS:-600000}
+      PUBLISHER_STALE_CHECK_INTERVAL_MS: ${PUBLISHER_STALE_CHECK_INTERVAL_MS:-60000}
+      PUBLISHER_MAX_STALLED_COUNT: ${PUBLISHER_MAX_STALLED_COUNT:-2}
+
+      # Rate Limiter
+      RATE_LIMITER_ENABLED: ${RATE_LIMITER_ENABLED:-true}
+      RATE_LIMITER_BASE_DELAY_MS: ${RATE_LIMITER_BASE_DELAY_MS:-3000}
+      RATE_LIMITER_MAX_DELAY_MS: ${RATE_LIMITER_MAX_DELAY_MS:-300000}
+      RATE_LIMITER_JITTER_PERCENT: ${RATE_LIMITER_JITTER_PERCENT:-20}
+      RATE_LIMITER_SUCCESS_DECREASE_FACTOR: ${RATE_LIMITER_SUCCESS_DECREASE_FACTOR:-0.9}
+      RATE_LIMITER_FAILURE_INCREASE_FACTOR: ${RATE_LIMITER_FAILURE_INCREASE_FACTOR:-2.0}
+
+      # Circuit Breaker
+      CIRCUIT_BREAKER_ENABLED: ${CIRCUIT_BREAKER_ENABLED:-true}
+      CIRCUIT_BREAKER_THRESHOLD: ${CIRCUIT_BREAKER_THRESHOLD:-3}
+      CIRCUIT_BREAKER_OPEN_DURATION_MS: ${CIRCUIT_BREAKER_OPEN_DURATION_MS:-300000}
+      CIRCUIT_BREAKER_PERSIST_TO_REDIS: ${CIRCUIT_BREAKER_PERSIST_TO_REDIS:-true}
+
+      # Cache
+      CACHE_ENABLED: ${CACHE_ENABLED:-true}
+      CACHE_DEFAULT_TTL: ${CACHE_DEFAULT_TTL:-300}
+      CACHE_STALE_TTL: ${CACHE_STALE_TTL:-7200}
+
+      # Metrics
+      METRICS_ENABLED: ${METRICS_ENABLED:-true}
+      METRICS_FLUSH_INTERVAL_MS: ${METRICS_FLUSH_INTERVAL_MS:-60000}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+
+      # Health Check
+      HEALTH_CHECK_PORT: 8000
+      HEALTH_CHECK_ENABLED: true
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - isekai-network
+    healthcheck:
+      test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  frontend:
+    image: ghcr.io/isekai-sh/isekai-frontend:${IMAGE_TAG:-latest}
+    container_name: isekai-frontend
+    ports:
+      - '${FRONTEND_PORT:-3000}:80'
+    environment:
+      # Runtime configuration (injected by entrypoint script)
+      # These values can be changed without rebuilding the image!
+      VITE_API_URL: ${VITE_API_URL:-http://localhost:4000/api}
+      VITE_DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
+      VITE_R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+    env_file:
+      - .env
+    depends_on:
+      - backend
+    restart: unless-stopped
+    networks:
+      - isekai-network
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80/']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  isekai-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+```
+
+## Service Breakdown
+
+### PostgreSQL (`postgres`)
+- **Image**: `postgres:16-alpine`
+- **Purpose**: Primary database for application data
+- **Volume**: `postgres_data` - Persists all user data, drafts, and schedules
+- **Health Check**: Verifies database is ready before starting dependent services
+
+### Redis (`redis`)
+- **Image**: `redis:7-alpine`
+- **Purpose**: Session storage, job queues, and caching
+- **Volume**: `redis_data` - Persists session data and queue jobs
+- **Persistence**: Configured with AOF (Append-Only File) for data durability
+
+### Backend (`backend`)
+- **Image**: `ghcr.io/isekai-sh/isekai-backend`
+- **Purpose**: API server, authentication, and job scheduling
+- **Dependencies**: Waits for PostgreSQL and Redis to be healthy
+- **Port**: 4000 (configurable via `BACKEND_PORT`)
+
+### Publisher (`publisher`)
+- **Image**: `ghcr.io/isekai-sh/isekai-publisher`
+- **Purpose**: Background worker for publishing to DeviantArt
+- **Dependencies**: Waits for PostgreSQL and Redis to be healthy
+- **Port**: 8000 (health check endpoint)
+
+### Frontend (`frontend`)
+- **Image**: `ghcr.io/isekai-sh/isekai-frontend`
+- **Purpose**: User interface (React SPA)
+- **Dependencies**: Backend API
+- **Port**: 80 internally, mapped to 3000 externally (configurable via `FRONTEND_PORT`)
+
+<Aside type="caution">
+**Backup Strategy:** The `postgres_data` and `redis_data` volumes contain all your persistent data. Make sure to implement a backup strategy for these volumes. See the [Maintenance guide](/operations/maintenance) for backup instructions.
+</Aside>

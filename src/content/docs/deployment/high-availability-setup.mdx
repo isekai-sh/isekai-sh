@@ -1,0 +1,54 @@
+---
+title: High Availability Setup
+---
+
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+For production environments where data integrity and uptime are critical, we strictly recommend decoupling your state from your containers.
+
+In the default docker-compose.yml, the database (PostgreSQL) and cache (Redis) run inside containers. If the host disk fails or the container volume is accidentally pruned, you lose data.
+
+## The Architecture
+
+In this setup:
+
+- Stateless Containers: backend, frontend, and publisher run on your compute nodes (VPS, App Platform, ECS).
+
+- Managed Database: PostgreSQL is hosted by a provider (AWS RDS, DigitalOcean Managed Databases, Neon).
+
+- Managed Cache: Redis is hosted by a provider (AWS ElastiCache, Upstash, DigitalOcean Managed Redis).
+
+## General Implementation Steps
+
+<Steps>
+
+1. Create your PostgreSQL 16+ database and Redis 7+ instance. Obtain the connection strings for both services.
+
+2. Use the Stateless Compose File
+    We provide a specific configuration file for this purpose: [stateless docker-compose.yml](/resources/stateless-docker-compose).
+
+3. Configure Environment Variables
+
+    You must override the default connection variables in your [environment variables](/resources/environment-variables):
+
+    ```bash
+    # Point to your managed database
+    DATABASE_URL="postgresql://doadmin:password@private-db-postgresql-nyc1.db.ondigitalocean.com:25060/isekai?sslmode=require"
+
+    # Point to your managed Redis
+    REDIS_URL="rediss://default:password@private-db-redis-nyc1.db.ondigitalocean.com:25061"
+
+    # Ensure session store uses Redis
+    SESSION_STORE="redis"
+    ```
+
+4. Running Migrations
+
+    Since the database is external, the application container might need to run migrations on startup. Our backend Docker image tries to run migrations on boot. If you have issues, you can run migrations manually from your local machine if you have the env vars set:
+
+    ```bash
+    export DATABASE_URL="your-production-url"
+    pnpm db:migrate
+    ```
+
+</Steps>

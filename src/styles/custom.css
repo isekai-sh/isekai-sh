@@ -1,0 +1,47 @@
+/* Custom styles for Isekai Documentation */
+
+/* Force dark theme */
+:root {
+  color-scheme: dark;
+}
+
+/* Make logo 50% of current height */
+.site-title img {
+  height: 70%;
+  max-height: 2rem;
+}
+
+/* Override default accent color to #19E094 */
+:root {
+  --sl-color-accent-low: #19e09420;
+  --sl-color-accent: #19e094;
+  --sl-color-accent-high: #19e094;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #19e09420;
+  --sl-color-accent: #19e094;
+  --sl-color-accent-high: #19e094;
+}
+
+/* Remove all rounded corners */
+* {
+  border-radius: 0 !important;
+}
+
+/* Ensure buttons, cards, and inputs have no rounded corners */
+button,
+.card,
+.sl-badge,
+input,
+textarea,
+select,
+pre,
+code,
+.expressive-code,
+aside,
+.tablist,
+.tab,
+img {
+  border-radius: 0 !important;
+}

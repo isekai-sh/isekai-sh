@@ -1,0 +1,124 @@
+---
+title: Run Locally
+---
+
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+<Aside>
+As of v0.1.0-alpha.2, only Cloudflare R2 is officially supported. We will support other S3 compatible storage options such as AWS S3, Digital Ocean Space, MinIO, and other object storage in the future. Local installation still need Cloudflare R2 to properly function.
+</Aside>
+
+You don't need a VPS to run Isekai Core if you prefer local installation. You can run the full application on your personal computer (Windows, macOS, or Linux) using Docker Desktop and Isekai Core will still function almost 100% offline.
+
+This is the recommended method for:
+
+- Testing the application before deploying
+- Personal usage
+- Developing custom integrations
+
+## Prerequisites
+
+- Docker Desktop: Download and install [Docker Desktop for your Operating System](https://www.docker.com/products/docker-desktop/)
+- [DeviantArt Application](/requirements/deviantart-application)
+- [Cloudflare R2 Storage](/requirements/cloudflare-r2-setup)
+
+## Installation Steps
+
+<Steps>
+
+1. Set up your directory
+
+    Open your terminal (PowerShell, Command Prompt, or Terminal) and create a folder for the project:
+
+    ```bash
+    # Create a folder
+    mkdir isekai
+    cd isekai
+
+    # Download the production compose file
+    curl -o docker-compose.yml [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml)
+
+    # Download the env example
+    curl -o .env [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example)
+    ```
+
+    __Note: On Windows PowerShell, you might need to use Invoke-WebRequest or just download the files manually from the browser.__
+
+2. Configure your [Environment Variables](/resources/environment-variables)
+    
+    Open the .env file in a text editor (Notepad, TextEdit, VS Code) and edit frontend and backend URLs:
+
+    ```ini
+    NODE_ENV=production
+    PORT=4000
+
+    # Frontend accesses Backend here
+    VITE_API_URL=http://localhost:4000/api
+
+    # Browser accesses Frontend here
+    FRONTEND_URL=http://localhost:3000
+    ```
+
+    Edit your DeviantArt Application credentials:
+
+    ```ini
+    DEVIANTART_CLIENT_ID=12345
+    DEVIANTART_CLIENT_SECRET=your-secret
+    DEVIANTART_REDIRECT_URI=http://localhost:4000/api/auth/deviantart/callback
+    ```
+
+    Fill in your R2_ credentials which you can obtain from the Cloudflare dashboard:
+    ```ini
+    R2_ACCOUNT_ID=your_account_id
+    R2_ACCESS_KEY_ID=your_access_key
+    R2_SECRET_ACCESS_KEY=your_secret_key
+    R2_BUCKET_NAME=your_bucket_name
+    R2_PUBLIC_URL=[https://your-bucket.r2.dev](https://your-bucket.r2.dev)
+    ```
+
+    Generate strong random strings for session management and encryption. You can use a password generator or run `openssl rand -hex 32` in a terminal.
+
+    ```ini
+    SESSION_SECRET=long_random_string_here
+    ENCRYPTION_KEY=32_byte_hex_string_here
+    ```
+
+3. Run The Container
+
+    Start the application stack:
+    ```bash
+    docker compose up -d
+    ```
+
+    Docker will download the images (Frontend, Backend, Publisher, Postgres, Redis) and start them. This might take a few minutes the first time.
+
+4. Access the app
+
+    - Open your browser to http://localhost:3000
+    - You should see the login screen
+    - Click "Login with DeviantArt"
+</Steps>
+
+
+## Managing the App
+
+### Stopping the App
+To stop the app and free up system resources:
+```bash
+docker compose down
+```
+
+### Updating
+
+To update to the latest version of Isekai Core:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+
+
+## Where is my data?
+
+By default, Docker stores the database data in a "volume" managed by Docker Desktop (except for the images stored in R2 object storage). Your data persists even if you restart your computer or stop the containers.

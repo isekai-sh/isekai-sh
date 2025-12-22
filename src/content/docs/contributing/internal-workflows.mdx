@@ -1,0 +1,95 @@
+---
+title: Internal Workflows
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+This document explains the complex logic flows "under the hood" of Isekai Core.
+
+## 1. The Publishing Pipeline
+
+What happens when a user clicks "Post Now" or a Schedule triggers?
+
+### Validation
+
+The Backend checks if the Draft has an image, a title, and the user has a valid (encrypted) token.
+
+### Job Creation
+
+- The Backend adds a job to the `deviation-publisher` queue.
+- **Payload**: Contains `draftId` and `userId`. It does not contain the image data (to keep Redis light).
+- **Locking**: The Backend sets the Draft status to `QUEUED`.
+
+### Worker Processing
+
+<Steps>
+
+1. The Publisher picks up the job.
+
+2. **Fetch**: Loads the Draft from Postgres.
+
+3. **Decrypt**: Decrypts the User's Refresh Token.
+
+4. **Refresh**: Checks if the token is expired. If yes, calls DeviantArt OAuth endpoint to get a new one and updates the DB.
+
+5. **Download**: Streams the image file from Cloudflare R2 into memory.
+
+6. **Upload**: Sends the file stream to DeviantArt's `stash/submit` endpoint.
+
+7. **Publish**: Calls `stash/publish` to make it public.
+
+</Steps>
+
+### Completion
+
+- **Success**: Updates Draft status to `PUBLISHED` and saves the `deviationId`.
+- **Failure**:
+  - If it's a temporary error (500, Network), BullMQ retries automatically (up to 7 times with exponential backoff).
+  - If it's permanent (400 Bad Request), the job moves to Failed, and the Draft status is set to `ERROR`.
+
+## 2. Stuck Job Recovery (The Failsafe)
+
+Distributed systems can fail. What if the Publisher crashes while uploading a file? The job in Redis might disappear or get stuck in "Active" state forever.
+
+We have a fail-safe mechanism located in `apps/isekai-backend/src/jobs/stuck-job-recovery.ts`.
+
+- **Trigger**: Runs every 5 minutes (configurable).
+- **Logic**:
+  - Queries Postgres for drafts that have been in `SUBMITTING` or `QUEUED` state for > 20 minutes.
+  - Checks BullMQ to see if a job actually exists for that Draft.
+- **Resolution**:
+  - If the job is missing in Redis but stuck in DB → Mark Draft as `FAILED` (so the user can retry).
+  - If the job is stalled → Re-queue it.
+
+## 3. Direct-to-R2 Uploads
+
+To avoid bottlenecking the Node.js server with large file uploads, we use a signed URL approach.
+
+<Steps>
+
+1. **Request**: Frontend requests an upload slot via `POST /api/uploads/sign`.
+
+2. **Sign**: Backend uses the AWS SDK (compatible with R2) to generate a PUT Presigned URL valid for 5 minutes.
+
+3. **Upload**: Frontend uploads the file directly to Cloudflare R2 using `XMLHttpRequest` (to track progress).
+
+4. **Confirm**: Once uploaded, Frontend sends the R2 Key back to the Backend to attach it to the Draft.
+
+</Steps>
+
+## 4. Rate Limiting & Circuit Breaker
+
+To play nicely with DeviantArt's API, we implement a custom Circuit Breaker around the publisher logic.
+
+**Location:** `apps/isekai-publisher/src/lib/circuit-breaker.ts`
+
+**Behavior:**
+
+- It wraps every call to the DeviantArt API.
+- If we receive a `429 Too Many Requests` error, the specific token/IP is flagged.
+- If failures cross a threshold (e.g., 5 errors in 1 minute), the Circuit **Opens**.
+- **Open State**: The worker immediately fails subsequent jobs with a "Circuit Open" error without even trying to call DeviantArt. This prevents us from being banned.
+- **Half-Open**: After 5 minutes, it allows 1 request through to test if the API is back.
+
+<Aside type="tip">
+This Circuit Breaker pattern protects your DeviantArt account from being flagged or banned for excessive API calls.
+</Aside>

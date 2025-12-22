@@ -1,0 +1,78 @@
+---
+title: Start Here
+description: A self-hosted DeviantArt scheduling platform
+---
+
+import { Aside, Card, CardGrid, LinkCard } from "@astrojs/starlight/components";
+
+Isekai is a modern web application that helps artists manage their DeviantArt posting workflow with features like scheduled publishing, draft organization, and AI image generation integration through ComfyUI.
+
+[Isekai Core](https://github.com/isekai-sh/isekai-core) is designed to be self-hosted on your own infrastructure. We support a variety of deployment strategies ranging from one-click PaaS solutions to highly available Kubernetes clusters.
+
+## Key Features
+
+<CardGrid>
+  <Card title="Scheduled Publishing" icon="star">
+    Schedule your artwork to be published at specific times. Perfect for maintaining a consistent posting schedule without manual intervention.
+  </Card>
+  <Card title="Draft Management" icon="document">
+    Organize and manage your artwork drafts before publishing. Edit metadata, descriptions, and tags all in one place.
+  </Card>
+  <Card title="ComfyUI Integration" icon="puzzle">
+    Direct integration with ComfyUI for AI image generation workflows. Generate and publish artwork seamlessly.
+  </Card>
+  <Card title="Automation Rules" icon="setting">
+    Set up automated publishing rules based on your preferences. Auto-schedule multiple pieces with configurable intervals.
+  </Card>
+</CardGrid>
+
+## Why Self-Host?
+
+- **Full Control**: Your data stays on your infrastructure
+- **No Limits**: No artificial restrictions on uploads or storage (only DeviantArt's API limits apply)
+- **Privacy**: Your DeviantArt credentials and artwork are never sent to third-party servers
+- **Customizable**: Open-source and extensible for your specific needs
+- **Cost-Effective**: Run on free-tier cloud services or your own hardware
+
+## Prerequisites
+
+Before getting started, you'll need:
+
+1. **Technical Skills**: Basic knowledge of Docker and command-line operations
+2. **Infrastructure**: A VPS, cloud platform, or local machine with Docker support
+3. **DeviantArt Account**: An active DeviantArt account for API access
+4. **Storage**: A Cloudflare R2 bucket (free tier available) for storing images
+
+<Aside>
+  Currently, we do not offer a hosted solution. If you want such a service,
+  please file an issue at our [GitHub Issues](https://github.com/isekai-sh/isekai-core/issues) tracker page and see
+  if we can get enough requests.
+</Aside>
+
+## Getting Started
+
+Ready to deploy Isekai? Here's your roadmap:
+
+<LinkCard
+  title="Set Up Requirements"
+  description="Create your DeviantArt application and configure Cloudflare R2 storage"
+  href="/requirements/deviantart-application"
+/>
+
+<LinkCard
+  title="Choose a Deployment Method"
+  description="Pick the deployment strategy that best fits your technical expertise and infrastructure"
+  href="/deployment"
+/>
+
+<LinkCard
+  title="Learn Operations"
+  description="Understand how to maintain, troubleshoot, and optimize your Isekai installation"
+  href="/operations"
+/>
+
+## Need Help?
+
+- **Issues & Bugs**: Report them on our [GitHub Issues](https://github.com/isekai-sh/isekai-core/issues)
+- **Documentation**: Browse the guides in this documentation site
+- **Contributing**: Interested in contributing? Check out our [Contributing Guide](/contributing/overview)

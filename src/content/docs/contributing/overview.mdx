@@ -1,0 +1,89 @@
+---
+title: Contributing to Isekai
+---
+import { Steps, Aside, FileTree } from "@astrojs/starlight/components";
+
+Thank you for your interest in contributing! Isekai Core is a monorepo built with pnpm workspaces. This guide will help you set up your development environment.
+
+## Prerequisites
+
+- **Node.js**: Version 20+
+- **pnpm**: Version 9+ (`npm install -g pnpm`)
+- **Docker**: Required for running the local database and Redis.
+
+## Project Structure
+
+We use a monorepo structure to share code between the API and the Worker.
+
+<FileTree>
+
+- apps/
+  - isekai-frontend/ React / Vite. The user interface.
+  - isekai-backend/ Express API. Handles auth, database access, and job scheduling.
+  - isekai-publisher/ Background Worker. Processes queues (uploading to DA, cleaning R2).
+- packages/
+  - shared/ Shared Library. Contains Prisma schema, database client, and shared types.
+
+</FileTree>
+
+## Local Setup
+
+<Steps>
+
+1. **Clone & Install**
+
+   ```bash
+   git clone https://github.com/isekai-sh/isekai-core.git
+   cd isekai-core
+   pnpm install
+   ```
+
+2. **Start Infrastructure**
+
+   We provide a `docker-compose.local.yml` to spin up just the dependencies (Postgres & Redis) without the apps.
+
+   ```bash
+   docker-compose -f docker-compose.yml up -d postgres redis
+   ```
+
+3. **Environment Variables**
+
+   You need to set up `.env` files for each workspace. We have a helper script, or you can copy them manually:
+
+   ```bash
+   cp apps/isekai-backend/.env.example apps/isekai-backend/.env
+   cp apps/isekai-frontend/.env.example apps/isekai-frontend/.env
+   cp apps/isekai-publisher/.env.example apps/isekai-publisher/.env
+   cp packages/shared/.env.example packages/shared/.env
+   ```
+
+   <Aside type="note">
+   You must fill in the `DEVIANTART_CLIENT_ID` and R2 credentials in `apps/isekai-backend/.env` for the app to function fully.
+   </Aside>
+
+4. **Database Setup**
+
+   Push the schema to your local Docker Postgres instance:
+
+   ```bash
+   pnpm db:migrate
+   ```
+
+5. **Start Development Servers**
+
+   This command starts the Frontend, Backend, and Publisher in parallel with hot-reloading.
+
+   ```bash
+   pnpm dev
+   ```
+
+   The app will be available at [http://localhost:3000](http://localhost:3000).
+
+</Steps>
+
+## Common Commands
+
+- `pnpm build`: Build all apps and packages.
+- `pnpm lint`: Run ESLint across the monorepo.
+- `pnpm test`: Run Vitest unit tests.
+- `pnpm db:studio`: Open Prisma Studio to view/edit database records manually.

@@ -1,0 +1,65 @@
+---
+title: Deployment Strategies
+---
+import { Card, CardGrid, Icon } from "@astrojs/starlight/components";
+
+Isekai allows you to self-host your own art management platform. Since the application is fully [containerized](https://cloud.google.com/discover/what-is-containerization?hl=en), you can deploy it on almost any infrastructure that supports [Docker](https://www.docker.com/).
+
+There are many ways to deploy Isekai beyond what we demonstrate here in the docs. To make it simple, we have created four different guides to deploy Isekai, depending on your technical expertise and infrastructure needs.
+
+<CardGrid>
+
+<Card title="One-Click Method" icon="rocket">
+
+**Recommended for:** Personal use, hobbyists, and those using management dashboards.
+
+**Tools:** Coolify or Dokploy
+**Infrastructure:** A single VPS
+
+Deploy Isekai with minimal configuration using PaaS platforms that support Docker Compose natively.
+
+[Read Guide →](/deployment/one-click-method)
+
+</Card>
+
+<Card title="Manual Docker Compose" icon="seti:docker">
+
+**Recommended for:** System administrators who prefer command-line control.
+
+**Tools:** Docker Engine, Docker Compose
+**Infrastructure:** Digital Ocean Droplet, Linode, Hetzner, AWS EC2
+
+Full control over your deployment with manual Docker Compose configuration on a bare VPS.
+
+[Read Guide →](/deployment/manual-docker-installation)
+
+</Card>
+
+<Card title="High Availability Setup" icon="setting">
+
+**Recommended for:** Production environments, scaling, and critical data reliability.
+
+**Tools:** Kubernetes, AWS ECS, Digital Ocean App Platform
+**Infrastructure:** Managed Database (RDS/Postgres), Managed Redis
+
+Deploy Isekai with managed services for maximum reliability and scalability.
+
+[Read Guide →](/deployment/high-availability-setup)
+
+</Card>
+
+<Card title="Run Locally" icon="laptop">
+
+**Recommended for:** Testing, development, and personal usage.
+
+**Tools:** Docker Desktop
+**Infrastructure:** Your own PC/Laptop
+
+Run Isekai on your personal computer for testing or offline usage.
+
+[Read Guide →](/deployment/run-locally)
+
+</Card>
+
+</CardGrid>
+

@@ -1,0 +1,180 @@
+---
+title: Environment Variables
+description: Complete reference of all configuration options available for Isekai Core
+---
+import { Aside } from "@astrojs/starlight/components";
+
+This page provides a complete reference of all environment variables used to configure Isekai Core. Copy the example below to your `.env` file and fill in your own values.
+
+<Aside type="tip">
+Most variables have sensible defaults. You only **need** to configure:
+- Database and Redis connection strings
+- DeviantArt OAuth credentials
+- Cloudflare R2 storage credentials
+- Security keys (SESSION_SECRET and ENCRYPTION_KEY)
+</Aside>
+
+## Complete Configuration
+
+```ini
+# Isekai - Self-Hosted Configuration
+# Copy this file to .env and fill in your own values
+
+# ==============================================================
+# Database Configuration
+# ==============================================================
+DATABASE_URL=postgresql://isekai:isekai@postgres:5432/isekai
+
+# ==============================================================
+# Redis Configuration
+# ==============================================================
+REDIS_URL=redis://redis:6379
+
+# ==============================================================
+# DeviantArt OAuth Configuration
+# ==============================================================
+# You MUST create your own DeviantArt OAuth application
+# 1. Go to: https://www.deviantart.com/developers/apps
+# 2. Create a new application
+# 3. Required scopes: user, browse, stash, publish, note, message, gallery
+# 4. Set redirect URI to: http://localhost:4000/api/auth/deviantart/callback
+#    (or your production URL: https://api.example.com/api/auth/deviantart/callback)
+
+DEVIANTART_CLIENT_ID=your_client_id_here
+DEVIANTART_CLIENT_SECRET=your_client_secret_here
+DEVIANTART_REDIRECT_URI=http://localhost:4000/api/auth/deviantart/callback
+
+# Note: Frontend automatically uses DEVIANTART_CLIENT_ID via Vite config
+# No need to set VITE_DEVIANTART_CLIENT_ID separately
+
+# ==============================================================
+# Cloudflare R2 Storage Configuration
+# ==============================================================
+# You MUST configure your own Cloudflare R2 bucket
+# 1. Create an R2 bucket in your Cloudflare account
+# 2. Generate API credentials (Access Key ID and Secret Access Key)
+# 3. Configure CORS for browser uploads (see docs)
+# 4. Get your public R2 URL
+
+R2_ACCOUNT_ID=your_account_id_here
+R2_ACCESS_KEY_ID=your_access_key_here
+R2_SECRET_ACCESS_KEY=your_secret_key_here
+R2_BUCKET_NAME=isekai-uploads
+R2_PUBLIC_URL=https://your-bucket.r2.dev
+
+# ==============================================================
+# Security Configuration
+# ==============================================================
+# Generate strong random values for these:
+# SESSION_SECRET: Any random string (e.g., openssl rand -base64 32)
+# ENCRYPTION_KEY: 32-byte hex key (e.g., openssl rand -hex 32)
+
+SESSION_SECRET=change-this-to-a-random-string
+ENCRYPTION_KEY=change-this-to-32-byte-hex-key
+
+# Optional: Set to ".yourdomain.com" to share cookies across subdomains in production
+# Leave empty for localhost development
+COOKIE_DOMAIN=
+
+# Session cookie lifetime in days (default: 7)
+SESSION_MAX_AGE_DAYS=7
+
+# DeviantArt refresh token tracking period in days (default: 90)
+REFRESH_TOKEN_EXPIRY_DAYS=90
+
+# ==============================================================
+# Application URLs
+# ==============================================================
+FRONTEND_URL=http://localhost:3000
+PORT=4000
+NODE_ENV=production
+
+# Frontend Runtime Configuration (Build Once, Run Anywhere)
+# These variables are injected at container startup, not build time
+# This allows the same Docker image to be deployed in different environments
+VITE_API_URL=http://localhost:4000/api
+VITE_DEVIANTART_CLIENT_ID=${DEVIANTART_CLIENT_ID}
+
+# ==============================================================
+# Session Storage Configuration
+# ==============================================================
+# Options: redis, postgres (auto-detects if not set)
+SESSION_STORE=redis
+
+# ==============================================================
+# Cache Configuration
+# ==============================================================
+CACHE_ENABLED=true                    # Master switch for Redis caching
+CACHE_DEFAULT_TTL=300                 # Default cache TTL in seconds (5 minutes)
+CACHE_STALE_TTL=7200                  # Stale cache TTL for 429 fallback (2 hours)
+
+# ==============================================================
+# Circuit Breaker Configuration
+# ==============================================================
+CIRCUIT_BREAKER_ENABLED=true          # Enable circuit breaker for rate limiting
+CIRCUIT_BREAKER_THRESHOLD=3           # Number of 429 errors before opening circuit
+CIRCUIT_BREAKER_OPEN_DURATION_MS=300000  # Stay open for 5 minutes
+CIRCUIT_BREAKER_PERSIST_TO_REDIS=true # Persist circuit state to Redis
+
+# ==============================================================
+# Publisher Worker Configuration
+# ==============================================================
+PUBLISHER_CONCURRENCY=5               # Number of concurrent jobs per worker
+PUBLISHER_MAX_ATTEMPTS=7              # Max retry attempts for failed jobs
+PUBLISHER_JOB_TIMEOUT_MS=600000       # Job timeout in milliseconds (10 minutes)
+PUBLISHER_STALE_CHECK_INTERVAL_MS=60000  # Check for stalled jobs interval (1 minute)
+PUBLISHER_MAX_STALLED_COUNT=2         # Max stalled attempts before failure
+
+# ==============================================================
+# Rate Limiter Configuration
+# ==============================================================
+RATE_LIMITER_ENABLED=true             # Enable adaptive rate limiter
+RATE_LIMITER_BASE_DELAY_MS=3000       # Base delay between requests (3 seconds)
+RATE_LIMITER_MAX_DELAY_MS=300000      # Max delay between requests (5 minutes)
+RATE_LIMITER_JITTER_PERCENT=20        # Jitter percentage for delays
+RATE_LIMITER_SUCCESS_DECREASE_FACTOR=0.9   # Decrease delay after success
+RATE_LIMITER_FAILURE_INCREASE_FACTOR=2.0   # Increase delay after failure
+
+# ==============================================================
+# Metrics & Monitoring
+# ==============================================================
+METRICS_ENABLED=true                  # Enable metrics collection
+METRICS_FLUSH_INTERVAL_MS=60000       # Flush metrics to Redis interval (1 minute)
+LOG_LEVEL=info                        # Log level: debug, info, warn, error
+
+# ==============================================================
+# Health Check Configuration
+# ==============================================================
+HEALTH_CHECK_PORT=8000                # Port for publisher health check HTTP server
+HEALTH_CHECK_ENABLED=true             # Enable health check endpoint
+
+# ==============================================================
+# Docker Image Tag
+# ==============================================================
+IMAGE_TAG=latest
+```
+
+## Configuration Sections Explained
+
+### Required Configuration
+
+These variables **must** be set for Isekai to function:
+
+- **DATABASE_URL**: PostgreSQL connection string
+- **REDIS_URL**: Redis connection string
+- **DEVIANTART_CLIENT_ID** & **DEVIANTART_CLIENT_SECRET**: OAuth credentials from DeviantArt
+- **R2_*** variables: Cloudflare R2 storage credentials
+- **SESSION_SECRET** & **ENCRYPTION_KEY**: Security keys for session management and token encryption
+
+### Optional Tuning
+
+These variables have defaults but can be adjusted based on your needs:
+
+- **Publisher Configuration**: Control job concurrency and retry behavior
+- **Rate Limiter**: Adjust API call delays to balance speed vs. compliance
+- **Circuit Breaker**: Configure automatic protection against rate limiting
+- **Cache Settings**: Control Redis caching behavior
+
+<Aside type="caution">
+If you plan to do bulk uploads, consider reducing `PUBLISHER_CONCURRENCY` to 1-2 and increasing `RATE_LIMITER_BASE_DELAY_MS` to 5000-10000ms to avoid DeviantArt rate limits.
+</Aside>

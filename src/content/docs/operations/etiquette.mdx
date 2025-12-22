@@ -1,0 +1,89 @@
+---
+title: Etiquette
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+Automating your workflow is powerful, but with great power comes great responsibility. Isekai Core is designed to be a "good citizen" of the DeviantArt ecosystem, but it relies on you to configure it correctly.
+
+## Avoiding Rate Limits (Error 429)
+
+DeviantArt protects its servers by limiting how many requests you can make in a short period. If you see `429 Too Many Requests`, it means you are moving too fast.
+
+### The "Content" Limit
+
+<Aside type="caution">
+Unlike standard API calls (like browsing), uploading files (`stash/submit` and `stash/publish`) has much stricter limits. Posting too many deviations instantly can trigger a temporary ban on your IP or Access Token.
+</Aside>
+
+### Recommended Tuning for Bulk Uploaders
+
+If you plan to upload dozens of images at once, you should slow down the publisher. Fast uploads are not necessary for background jobs—reliability is more important than speed.
+
+Edit these values in your `.env` file:
+
+```bash
+# Reduce concurrency to 1 or 2.
+# Default is 5, which might be too aggressive for bulk uploads.
+PUBLISHER_CONCURRENCY=1
+
+# Increase the delay between API calls.
+# Default is 3000ms (3s). 5000ms-10000ms (5-10s) is much safer.
+RATE_LIMITER_BASE_DELAY_MS=5000
+
+# Add jitter to make behavior look less robotic.
+RATE_LIMITER_JITTER_PERCENT=30
+```
+
+### The Circuit Breaker
+
+Isekai Core includes a built-in Circuit Breaker. If it detects multiple 429 errors:
+
+- It stops all publishing jobs immediately.
+- It enters an "Open" state for 5 minutes (default `CIRCUIT_BREAKER_OPEN_DURATION_MS`).
+- Jobs will fail with "Circuit Open" message to protect your account from further bans.
+- After the cooldown, it tries one job to see if the limit is lifted.
+
+## Scheduling vs. Dumping
+
+Just because you can upload 100 images in 5 minutes doesn't mean you should.
+
+### Why "Dumping" is Bad
+
+- **Algorithm Penalty**: DeviantArt's algorithm (and Watch feeds) may flag rapid-fire uploads as spam.
+- **User Fatigue**: Your watchers will be overwhelmed if you flood their inbox with 50 notifications in one minute, leading to unwatches.
+- **Ban Risk**: High frequency increases the chance of automated spam detection flagging your account.
+
+### The Isekai Strategy
+
+<Steps>
+
+1. Upload your bulk batch of 20 images to **Drafts**.
+
+2. Select them all.
+
+3. Click **Auto-Schedule**.
+
+4. Let Isekai release them over the next few days (e.g., 1 post every 6 hours).
+
+</Steps>
+
+<Aside type="tip">
+This maximizes engagement (your art stays at the top of feeds longer) and keeps your account safe.
+</Aside>
+
+## Compliance & Tagging
+
+### AI Generation
+
+DeviantArt requires AI-generated content to be tagged properly.
+
+- In **Settings > Default Values**, enable "Mark as AI Generated".
+- This ensures the `ai_generated` flag is sent with every API request, keeping you compliant with DA Terms of Service.
+
+### Mature Content
+
+<Aside type="caution">
+Always strictly tag mature content. If you are unsure, use the "Strict" setting in the Draft editor.
+
+Failure to tag mature content correctly is a violation of DeviantArt policies and can result in account suspension.
+</Aside>
