@@ -3,6 +3,7 @@ import { defineConfig } from "astro/config";
 import starlightThemeBlack from "starlight-theme-black";
 import starlightThemeRapide from "starlight-theme-rapide";
 import starlightThemeNext from "starlight-theme-next";
+import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
   site: 'https://isekai.sh',
@@ -18,6 +19,9 @@ export default defineConfig({
       customCss: ["./src/styles/custom.css"],
       components: {
         ThemeSelect: "./src/components/ThemeSelect.astro",
+      },
+      editLink: {
+        baseUrl: "https://github.com/isekai-sh/isekai-sh/edit/main/",
       },
       sidebar: [
         {
@@ -99,5 +103,6 @@ export default defineConfig({
         },
       ],
     }),
+    sitemap(),
   ],
 });
