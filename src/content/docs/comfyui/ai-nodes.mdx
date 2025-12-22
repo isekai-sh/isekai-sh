@@ -1,0 +1,117 @@
+---
+title: AI Integration Nodes
+description: Generate titles using Ollama LLMs for automated metadata
+---
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+## Isekai Ollama Summarizer
+
+Generate short, catchy titles from long prompts using local Ollama LLMs.
+
+**Location:** Isekai > Isekai Ollama Summarizer
+
+**Requirements:** Ollama running locally ([ollama.com](https://ollama.com))
+
+### Inputs
+
+- `text_input` (STRING, required): Long prompt text to summarize
+- `ollama_url` (STRING, required): Ollama server URL (default: "http://localhost:11434")
+- `model` (DROPDOWN, required): LLM model to use (dynamically populated from Ollama)
+
+### Outputs
+
+- `title_summary` (STRING): Generated short title (or error message)
+
+### Special Outputs
+
+- `"Untitled"`: Empty input
+- `"Connection Failed"`: Cannot reach Ollama
+- `"Error: 404"`: Model not found
+
+### Supported Models
+
+Common models include: `llama3`, `mistral`, `llama2`, `gemma`, etc.
+
+### Example
+
+```
+Input text_input:
+"A highly detailed digital painting of a fierce warrior woman wearing ornate golden armor, standing heroically on a mountain peak at sunset with dramatic clouds in the background, fantasy art style"
+
+model: llama3
+Output: "Warrior at Golden Sunset"
+```
+
+### Workflow Integration
+
+```
+CLIP Text Encode ──→ text_input ┐
+(full prompt)                    ├→ Ollama Summarizer → Isekai Upload
+                     model: llama3                      (auto-generated title)
+```
+
+---
+
+## Setup Ollama
+
+<Steps>
+
+1. **Install Ollama**
+   ```bash
+   curl -fsSL https://ollama.com/install.sh | sh
+   ```
+
+2. **Pull a model**
+   ```bash
+   ollama pull llama3
+   ```
+
+3. **Verify it's running**
+   ```bash
+   curl http://localhost:11434/api/tags
+   ```
+
+</Steps>
+
+<Aside type="tip">
+The Ollama Summarizer is perfect for generating concise, SEO-friendly titles for your artwork automatically. Combine it with the Isekai Upload node to automate the entire upload process.
+</Aside>
+
+---
+
+## Tips for Better Results
+
+- **Use specific prompts**: The better your input prompt, the better the generated title
+- **Try different models**: Each model has different strengths (llama3 is generally good for creative titles)
+- **Keep Ollama running**: Make sure Ollama server is running before using the node
+- **Check console output**: The node prints helpful debugging information to the ComfyUI console
+
+---
+
+## Common Use Cases
+
+### Auto-Title Generation
+
+```
+Dynamic String ──→ CLIP Text Encode ──→ Sampler ──→ VAE Decode
+(random prompts)                                         ↓
+                                                  Ollama Summarizer ──→ Isekai Upload
+                                                  (auto-generate title)
+```
+
+### Character Tags with AI Titles
+
+```
+Round Robin ──→ Tag Selector ──→ Concatenate ──→ CLIP Text Encode ──→ Sampler
+(characters)    (character tags)  (full prompt)                           ↓
+                                                                      VAE Decode
+                                                                           ↓
+                                  Ollama Summarizer ←──────────── (pass prompt text)
+                                  (generate title)                         ↓
+                                         ↓                            Isekai Upload
+                                     title ──────────────────────→  (upload with AI title)
+```
+
+<Aside>
+**Advanced Tip**: You can chain multiple Ollama Summarizer nodes to generate different metadata fields (title, description, tags) from the same prompt by using different system prompts or models.
+</Aside>

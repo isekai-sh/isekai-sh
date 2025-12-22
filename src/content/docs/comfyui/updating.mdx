@@ -1,0 +1,59 @@
+---
+title: Updating
+description: How to update Isekai Comfy Node to the latest version or choose a specific version
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+You can update Isekai Comfy Node using one of the following methods, depending on how you initially installed it.
+
+## Via ComfyUI Manager
+
+<Steps>
+
+1. Click ComfyUI logo -> click the **Manage Extension**
+
+2. Find **"Isekai Comfy Node"** in the installed list
+
+3. Click **Update** if available
+
+4. Restart ComfyUI when prompted
+
+</Steps>
+
+## Via Manual Download
+
+<Steps>
+
+1. **[Download the latest release](https://github.com/isekai-sh/isekai-comfy-node/releases/latest)** or browse **[all releases](https://github.com/isekai-sh/isekai-comfy-node/releases)** to choose a specific version
+
+2. Delete the existing `ComfyUI/custom_nodes/isekai-comfy-node/` folder
+
+3. Extract the new ZIP file to `ComfyUI/custom_nodes/isekai-comfy-node/`
+
+4. Open a terminal in the extracted folder
+
+5. Run: `pip install -r requirements.txt`
+
+6. Restart ComfyUI
+
+</Steps>
+
+## Via Git
+
+<Steps>
+
+1. Open a terminal in `ComfyUI/custom_nodes/isekai-comfy-node/`
+
+2. Run: `git pull` to update to the latest version
+
+3. **(Optional)** To use a specific version, run: `git checkout v1.0.0` (replace with desired version tag)
+
+4. Run: `pip install -r requirements.txt`
+
+5. Restart ComfyUI
+
+</Steps>
+
+<Aside type="note">
+Check the **[changelog](https://github.com/isekai-sh/isekai-comfy-node/releases)** for breaking changes before updating.
+</Aside>

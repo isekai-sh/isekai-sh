@@ -1,0 +1,145 @@
+---
+title: Troubleshooting
+description: Common issues and solutions for Isekai ComfyUI nodes
+---
+import { Aside, Steps } from "@astrojs/starlight/components";
+
+## Common Error Messages
+
+| Error | Node | Meaning | Solution |
+|-------|------|---------|----------|
+| "No API key provided" | Upload | API key not found | Set `ISEKAI_API_KEY` environment variable or enter key in node |
+| "Invalid API key format" | Upload | API key doesn't match expected format | Check that key starts with `isk_` and has 64 hex characters |
+| "Authentication failed" | Upload | API key is invalid or revoked | Generate a new API key in your Isekai Core instance |
+| "Storage limit exceeded" | Upload | Reached storage quota | Check storage settings in your instance or delete old deviations |
+| "Rate limit exceeded" | Upload | Too many uploads in short time | Wait 15 minutes (limit: 100 uploads per 15 minutes) |
+| "Failed to connect" | Upload | Network or API connection issue | Check internet connection and API URL configuration |
+| "Upload timed out" | Upload | Request took > 60 seconds | Check network connection and try again |
+| "Connection Failed" | Ollama | Cannot reach Ollama server | Start Ollama (`ollama serve`) and verify URL |
+| "Untitled" | Ollama | Empty input provided | Connect a non-empty text input to the node |
+
+## Installation Issues
+
+### Node doesn't appear in ComfyUI
+
+1. If installed via Manager, try reinstalling from **Manager** → **Install Custom Nodes**
+2. Check that the folder is in `ComfyUI/custom_nodes/isekai-comfy-node/`
+3. Verify structure matches the modular format
+4. Install dependencies: `pip install -r requirements.txt`
+5. Restart ComfyUI completely
+6. Check the ComfyUI console for error messages
+
+### "ModuleNotFoundError: No module named 'PIL'"
+
+Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+## API Key Issues
+
+### "No API key provided" Error
+
+<Steps>
+
+1. **Check if environment variable is set:**
+
+   ```bash
+   # macOS/Linux
+   echo $ISEKAI_API_KEY
+
+   # Windows (PowerShell)
+   echo $env:ISEKAI_API_KEY
+
+   # Windows (Command Prompt)
+   echo %ISEKAI_API_KEY%
+   ```
+
+2. **If empty, set the environment variable:**
+   - Follow instructions in [Installation & Setup](/comfyui/installation)
+   - Restart ComfyUI after setting the variable
+
+3. **Verify the key format:**
+   - Must start with `isk_`
+   - Must have 64 hexadecimal characters after the prefix
+   - Example: `isk_0123456789abcdef...` (total 68 characters)
+
+4. **Check console output:**
+   - Look for: `[Isekai] Using API key from ISEKAI_API_KEY environment variable`
+   - Or: `[Isekai] Using API key from node input`
+
+5. **Fallback to node input:**
+   - If environment variable doesn't work, enter key directly in the node
+   - Make sure the `api_key` field is not empty
+
+</Steps>
+
+## Upload Issues
+
+### "Failed to connect to Isekai API"
+
+1. Verify `ISEKAI_API_URL` is set correctly and points to your Isekai Core instance
+2. Check your internet connection (if using remote instance)
+3. Ensure your Isekai Core instance is running and accessible
+4. Check if your firewall is blocking the connection
+5. Verify the URL format: `https://api.your-domain.com` for deployed instances or `http://localhost:4000` for local
+
+### Upload succeeds but image doesn't appear
+
+1. Log in to your Isekai Core instance
+2. Navigate to the **"Review"** section
+3. Your upload should appear with status "review"
+4. Approve the upload to make it visible in Drafts
+
+## Ollama Issues
+
+### Ollama Summarizer not working
+
+1. Verify Ollama is installed: `ollama --version`
+2. Start Ollama server: `ollama serve`
+3. Check server is running: `curl http://localhost:11434/api/tags`
+4. Ensure model is pulled: `ollama pull llama3`
+5. Check URL in node matches Ollama server (default: http://localhost:11434)
+
+## String Node Issues
+
+### Dynamic String returns empty
+
+1. Check that text_list contains non-empty lines
+2. Verify seed value is valid (0 to 2^64-1)
+3. Ensure input is multiline (use Shift+Enter in text field)
+
+### Tag Selector returns default value
+
+1. Verify trigger word matches a key in presets (case-insensitive)
+2. Check preset format using TOML/INI style sections:
+   ```
+   [TriggerWord]
+   tags, separated, by, commas
+   ```
+3. Ensure sections use square brackets `[Section]`
+
+### Round Robin state issues
+
+- State is stored in `ComfyUI/temp/isekai/round_robin/{batch_id}.log`
+- State automatically clears when ComfyUI restarts
+- If you change `images_per_item` mid-batch, the counter resets automatically
+- To start over: Restart ComfyUI or use a new batch_id
+
+### Load Text file not found
+
+- Check that files are in `ComfyUI/models/text_files/` for dropdown
+- Verify absolute path is correct for custom_path
+- Supports UTF-8 encoding with automatic fallback
+- Shows "(no files found - use custom path)" if text_files directory is empty
+
+## Getting Help
+
+<Aside type="tip">
+Before reporting an issue, check the ComfyUI console for detailed error messages.
+</Aside>
+
+- **Issues & Bugs**: [GitHub Issues](https://github.com/isekai-sh/isekai-comfy-node/issues)
+- **Documentation**: Browse the node-specific pages on this site
+- **Deployment Help**: See the [Deployment Guides](/deployment) if you need help setting up your Isekai Core instance

@@ -1,0 +1,101 @@
+---
+title: Image Processing Nodes
+description: Upload and compress images with Isekai ComfyUI nodes
+---
+import { Aside } from "@astrojs/starlight/components";
+
+## Isekai Upload
+
+Upload generated images directly to the Isekai platform with built-in compression.
+
+**Location:** Isekai > Isekai Upload
+
+### Inputs
+
+- `image` (IMAGE, required): Image tensor from any image-producing node
+- `title` (STRING, required): Title for your artwork (max 200 characters)
+- `api_key` (STRING, optional): Your Isekai API key
+  - Leave empty to use `ISEKAI_API_KEY` environment variable (recommended)
+- `tags` (STRING, optional): Comma-separated tags
+- `format` (DROPDOWN): JPEG or PNG (default: JPEG)
+- `quality` (INT slider): Compression quality 1-100 (default: 90)
+
+### Outputs
+
+- `IMAGE`: Pass-through of input image (enables preview)
+
+### Compression Benefits
+
+- **JPEG quality 90**: ~80-90% size reduction with excellent quality
+- **JPEG quality 75-85**: ~85-92% size reduction, very good quality
+- **PNG**: Lossless, ~20-30% compression only
+
+<Aside type="tip">
+JPEG quality 90 (default) provides the best balance between file size and image quality for most use cases.
+</Aside>
+
+### Example Workflow
+
+```
+VAE Decode → Isekai Upload → Preview Image
+             ↓ title: "Epic Fantasy Warrior"
+             ↓ tags: "fantasy, warrior, armor"
+             ↓ format: JPEG
+             ↓ quality: 90
+```
+
+### After Upload
+
+- Images appear in your Isekai Core instance with status "review"
+- Approve or reject in the web interface
+- Approved images move to Drafts for scheduling
+
+---
+
+## Isekai Compress and Save
+
+Compress and save images to disk with full control over format, quality, and filenames.
+
+**Location:** Isekai > Isekai Compress and Save
+
+### Inputs
+
+- `images` (IMAGE, required): Image tensor from any image-producing node
+- `filename` (STRING, required): Base filename (default: "isekai")
+- `format` (DROPDOWN): JPEG, PNG, or WEBP (default: JPEG)
+- `quality` (INT slider): Compression quality 1-100 (default: 90)
+
+### Outputs
+
+None (terminal node - saves to disk). Images saved to `ComfyUI/output/` folder.
+
+### Format Options
+
+- **PNG**: Lossless compression, supports transparency
+- **JPEG**: Lossy compression, smaller files, no transparency
+- **WEBP**: Modern format, excellent compression, best of both worlds
+
+### Filename Pattern
+
+```
+{filename}_{counter}.{extension}
+
+Examples:
+- filename="artwork" → artwork_00001.jpg
+- filename="character" → character_00001.jpg
+- filename="render" → render_00001.webp
+```
+
+### Example Workflow
+
+```
+VAE Decode → Isekai Compress and Save
+             ↓ filename: "artwork"
+             ↓ format: JPEG
+             ↓ quality: 90
+             → Saves to: output/artwork_00001.jpg
+```
+
+<Aside>
+Counter auto-increments to avoid overwriting files. JPEG quality 90 is recommended for excellent quality with good compression.
+</Aside>

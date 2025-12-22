@@ -1,0 +1,136 @@
+---
+title: Setting Up Your API Key
+---
+import { Steps, Aside, Tabs, TabItem } from "@astrojs/starlight/components";
+
+To use the Isekai Comfy Node with your Isekai Core deployment, you'll need to set up an API key. This key allows the nodes to authenticate and interact with your Isekai instance for uploading and managing images.
+
+
+<Steps>
+
+1. Log in to your Isekai Core instance (e.g., `https://your-domain.com`)
+
+2. Navigate to **Profile > API Keys**
+
+3. Click **"Create New API Key"**
+
+4. Give it a name (e.g., "ComfyUI")
+
+5. Copy the API key (starts with `isk_...`)
+
+</Steps> 
+
+## Setting Up API Key
+ 
+### Using Environment Variable (Recommended)
+
+Set the `ISEKAI_API_KEY` environment variable before starting ComfyUI:
+
+<Tabs>
+<TabItem label="macOS/Linux">
+
+```bash
+export ISEKAI_API_KEY=isk_your_api_key_here
+```
+
+</TabItem>
+<TabItem label="Windows (PowerShell)">
+
+```powershell
+$env:ISEKAI_API_KEY="isk_your_api_key_here"
+```
+
+</TabItem>
+<TabItem label="Windows (Command Prompt)">
+
+```cmd
+set ISEKAI_API_KEY=isk_your_api_key_here
+```
+
+</TabItem>
+</Tabs>
+
+Then restart ComfyUI. The upload node will automatically use the environment variable.
+
+### Using Node Input (Fallback)
+
+If you don't set the environment variable, you can enter your API key directly in the node's `api_key` field. However, this method:
+
+- Exposes your API key in the node interface
+- Saves your API key in workflow JSON files
+- **Should not be used for workflows you plan to share publicly**
+
+The environment variable method is more secure and prevents accidental exposure.
+
+## Optional: Ollama Setup
+
+For the Ollama Summarizer node, you need Ollama running locally:
+
+```bash
+# Install Ollama
+curl -fsSL https://ollama.com/install.sh | sh
+
+# Pull a model
+ollama pull llama3
+
+# Verify it's running
+curl http://localhost:11434/api/tags
+```
+
+## Configure Your Isekai Instance URL
+
+Point the node to your Isekai Core instance by setting the `ISEKAI_API_URL` environment variable:
+
+<Tabs>
+<TabItem label="macOS/Linux">
+
+```bash
+# For deployed instance
+export ISEKAI_API_URL=https://api.your-domain.com
+
+# For local instance
+export ISEKAI_API_URL=http://localhost:4000
+```
+
+</TabItem>
+<TabItem label="Windows (PowerShell)">
+
+```powershell
+# For deployed instance
+$env:ISEKAI_API_URL="https://api.your-domain.com"
+
+# For local instance
+$env:ISEKAI_API_URL="http://localhost:4000"
+```
+
+</TabItem>
+<TabItem label="Windows (Command Prompt)">
+
+```cmd
+# For deployed instance
+set ISEKAI_API_URL=https://api.your-domain.com
+
+# For local instance
+set ISEKAI_API_URL=http://localhost:4000
+```
+
+</TabItem>
+</Tabs>
+
+Replace `your-domain.com` with your actual Isekai Core domain (e.g., if your frontend is at `https://isekai.example.com`, your API URL should be `https://api.example.com`).
+
+Then restart ComfyUI.
+
+<Aside type="tip">
+If you deployed using the [deployment guides](/deployment), your API URL typically follows the pattern `https://api.your-domain.com`.
+</Aside>
+
+## Rate Limits & Quotas
+
+- **Rate Limit**: 100 uploads per 15 minutes per API key (configurable in your instance)
+- **File Size**: Maximum 50 MB per image (default)
+- **Storage**: Check your current usage in your Isekai Core instance dashboard
+
+<Aside>
+Exceeding the rate limit will result in a temporary block. Wait 15 minutes before trying again. Rate limits and quotas can be configured in your Isekai Core deployment.
+</Aside>

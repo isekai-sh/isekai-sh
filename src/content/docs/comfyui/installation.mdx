@@ -1,0 +1,53 @@
+---
+title: Installation
+description: How to install and configure the Isekai ComfyUI custom nodes
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+<Aside type="tip">
+The easiest way to install Isekai Comfy Node is through ComfyUI's built-in extension manager.
+</Aside>
+
+## Method 1: ComfyUI Manager (Recommended)
+
+<Steps>
+
+1. Click ComfyUI logo -> click the **Manage Extension**
+
+2. Search for **"Isekai"**
+
+3. Click **Install** next to "Isekai Comfy Node"
+
+4. Restart ComfyUI when prompted
+
+</Steps>
+
+## Method 2: Manual Download
+
+<Steps>
+
+1. **[Download the latest release](https://github.com/isekai-sh/isekai-comfy-node/releases/latest)**
+
+2. Extract the ZIP file to `ComfyUI/custom_nodes/isekai-comfy-node/`
+
+3. Open a terminal in the extracted folder
+
+4. Run: `pip install -r requirements.txt`
+
+5. Restart ComfyUI
+
+</Steps>
+
+## Method 3: Manual Git Clone
+
+<Steps>
+
+1. Open a terminal in `ComfyUI/custom_nodes/`
+
+2. Run: `git clone https://github.com/isekai-sh/isekai-comfy-node.git`
+
+3. Run: `cd isekai-comfy-node && pip install -r requirements.txt`
+
+4. Restart ComfyUI
+
+</Steps> 

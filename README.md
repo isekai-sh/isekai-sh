@@ -14,6 +14,7 @@ This repository contains the complete documentation for Isekai Core, including:
 - **Deployment Guides**: Multiple deployment strategies (one-click, manual Docker, high availability, local)
 - **Requirements Setup**: DeviantArt OAuth and Cloudflare R2 configuration
 - **Operations**: Maintenance, troubleshooting, and best practices
+- **Isekai Comfy Node**: Custom nodes for AI image generation workflows
 - **Architecture**: Technical details for contributors
 - **Reference Documentation**: Environment variables and Docker Compose configurations
 
@@ -80,7 +81,7 @@ The site will be available at `http://localhost:4321`
 │   │       ├── deployment/
 │   │       ├── requirements/
 │   │       ├── operations/
-│   │       ├── integrations/
+│   │       ├── comfyui/
 │   │       ├── contributing/
 │   │       └── resources/
 │   └── styles/

@@ -1,0 +1,71 @@
+---
+title: Introduction
+description: Custom nodes for ComfyUI to upload images, compress files, and enhance AI generation workflows
+---
+import { Card, CardGrid, LinkCard, Aside } from "@astrojs/starlight/components";
+
+Isekai Comfy Node is a collection of custom nodes for [ComfyUI](https://comfyui.com/) that integrates well with your [Isekai Core](/overview) deployment. 
+These nodes allow you to upload images directly to Isekai, compress images before saving, manipulate strings for prompts, and generate titles using local Ollama LLMs.
+
+<Aside type="note">
+If you don't use Isekai Core, you can also skip the integration and use the image compression and string utility nodes standalone within ComfyUI. These nodes are useful for regular batch processing workflows and will work as is, even without an API key.
+</Aside>
+
+## Features Overview
+
+<CardGrid>
+  <Card title="Image Processing" icon="seti:image">
+    Upload images directly to Isekai with built-in compression. Save compressed images to disk in multiple formats (JPEG/PNG/WEBP).
+  </Card>
+  <Card title="String Utilities" icon="document">
+    Dynamic string selection, concatenation, tag lookup, round-robin cycling, and file loading for building complex prompts.
+  </Card>
+  <Card title="AI Integration" icon="star">
+    Generate concise titles from prompts using local Ollama LLMs for automated metadata creation.
+  </Card>
+</CardGrid>
+
+## Node Categories
+
+<LinkCard
+  title="Image Processing Nodes"
+  description="Upload images to Isekai with compression and save compressed images to disk"
+  href="/comfyui/image-nodes"
+/>
+
+<LinkCard
+  title="String Utility Nodes"
+  description="Dynamic strings, concatenation, tag selection, round-robin cycling, and text loading"
+  href="/comfyui/string-nodes"
+/>
+
+<LinkCard
+  title="AI Integration Nodes"
+  description="Generate titles using Ollama LLMs for automated metadata"
+  href="/comfyui/ai-nodes"
+/>
+
+<LinkCard
+  title="Installation & Setup"
+  description="How to install, configure API keys, and get started"
+  href="/comfyui/installation"
+/>
+
+<LinkCard
+  title="Troubleshooting"
+  description="Common issues, error messages, and solutions"
+  href="/comfyui/troubleshooting"
+/>
+
+## Requirements
+
+- ComfyUI installed and running
+- Python 3.8 or higher
+- Your own Isekai Core deployment (optional) - [See deployment guides](/deployment)
+- For Ollama Summarizer: Local Ollama instance (optional)
+
+## Quick Links
+
+- [GitHub Repository](https://github.com/isekai-sh/isekai-comfy-node)
+- [Latest Release](https://github.com/isekai-sh/isekai-comfy-node/releases/latest)
+- [Report Issues](https://github.com/isekai-sh/isekai-comfy-node/issues)

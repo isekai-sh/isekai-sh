@@ -1,0 +1,160 @@
+---
+title: String Utility Nodes
+description: Dynamic strings, concatenation, tag selection, and text loading for ComfyUI
+---
+import { Aside } from "@astrojs/starlight/components";
+
+String utility nodes help you build complex prompts, manage lists, and automate text workflows in ComfyUI.
+
+## Isekai Dynamic String
+
+Randomly select one line from multiline text with reproducible results.
+
+**Inputs:**
+- `text_list` (STRING, multiline): Lines of text (one option per line)
+- `seed` (INT): Random seed for deterministic selection
+
+**Outputs:**
+- `selected_string` (STRING): One randomly selected line
+
+**Example:**
+```
+Input text_list:
+portrait of a warrior
+landscape with mountains
+abstract digital art
+
+Seed: 42
+Output: "portrait of a warrior" (same seed = same result)
+```
+
+---
+
+## Isekai Concatenate String
+
+Join multiple string inputs with a configurable delimiter.
+
+**Inputs:**
+- `delimiter` (STRING): string to place between joined texts (default: " ")
+- `text_a` through `text_j` (STRING): Up to 10 text inputs
+
+**Outputs:**
+- `concatenated_string` (STRING): Joined text (empty inputs are skipped)
+
+**Example:**
+```
+text_a = "portrait of"
+text_b = "a warrior"
+text_c = "in golden armor"
+delimiter = " "
+Output: "portrait of a warrior in golden armor"
+```
+
+---
+
+## Isekai Tag Selector
+
+Dictionary-based tag lookup using trigger words with TOML/INI format.
+
+**Inputs:**
+- `trigger_word` (STRING): Keyword to search for
+- `presets` (STRING, multiline): TOML/INI style sections with tags
+- `default_value` (STRING, optional): Fallback value if trigger not found
+
+**Outputs:**
+- `selected_tags` (STRING): Matched tags or default value
+
+**Format (TOML/INI Style):**
+```
+[Superman]
+hero, flying, dc, blue suit, red cape, superhuman strength
+
+[Batman]
+dark, gotham, rich, bat signal, detective, vigilante
+
+[Wonder Woman]
+amazon, warrior, princess, tiara, lasso of truth
+```
+
+**Usage:**
+```
+trigger_word = "batman"
+Output: "dark, gotham, rich, bat signal, detective, vigilante"
+```
+
+<Aside type="tip">
+Matching is case-insensitive and whitespace-tolerant. Still supports legacy `Key: value` format for backward compatibility.
+</Aside>
+
+---
+
+## Isekai Round Robin
+
+Cycle through items in batch-completion mode using a round-robin pattern, ensuring equal distribution of images per item.
+
+**Inputs:**
+- `text_list` (STRING, multiline): Items to cycle through (one per line)
+- `images_per_item` (INT): Number of images to generate per item (1-1000, default: 32)
+- `batch_id` (STRING): Unique identifier for this batch job (default: "default")
+
+**Outputs:**
+- `selected_item` (STRING): Current item from the list
+- `progress_info` (STRING): Progress indicator (e.g., "Alice: 15/32 | Total: 15/96")
+- `batch_count_needed` (INT): Total number of executions needed
+
+**Behavior:**
+- **Batch Completion**: Generates ALL images for Item A before moving to Item B
+- **State Persistence**: Bound to `batch_id` - different IDs maintain separate counters
+- **Auto-Reset**: After all items complete, automatically cycles back to the first item
+- **Smart Progress**: Shows both item progress and overall completion
+
+**Example:**
+```
+Input:
+  text_list: Alice\nBob\nCharlie
+  images_per_item: 32
+  batch_id: "character_batch_1"
+
+Execution 1: "Alice", "Alice: 1/32 | Total: 1/96", 96
+Execution 32: "Alice", "Alice: 32/32 | Total: 32/96", 96
+Execution 33: "Bob", "Bob: 1/32 | Total: 33/96", 96
+Execution 96: "Charlie", "Charlie: 32/32 | Total: 96/96", 96
+```
+
+<Aside>
+**Tip**: Use unique batch IDs for each batch job (e.g., "batch_001", "characters_v2"). State is stored in `ComfyUI/temp/isekai/round_robin/{batch_id}.log` and automatically clears when ComfyUI restarts.
+</Aside>
+
+---
+
+## Isekai Load Text
+
+Load text from a file and output it as a string using a dropdown selector or custom path.
+
+**Inputs:**
+- `text_file` (COMBO dropdown, optional): Select file from `ComfyUI/models/text_files/`
+- `custom_path` (STRING, optional): Absolute path for files outside text_files directory
+
+**Outputs:**
+- `text_content` (STRING): Contents of the file as a string
+
+**How to Use:**
+
+**Method 1: Dropdown (Recommended)**
+1. Place text files in `ComfyUI/models/text_files/`
+2. Restart ComfyUI
+3. Select file from dropdown
+
+**Method 2: Custom Path**
+- Enter absolute path: `/Users/username/prompts/characters.txt` (macOS/Linux)
+- Or: `C:\Users\username\prompts\characters.txt` (Windows)
+
+**Use Cases:**
+- Load prompts from external files
+- Load character lists for Round Robin or Dynamic String
+- Load tag presets for Tag Selector
+- Share prompt lists between workflows
+
+<Aside type="tip">
+If both inputs are provided, `custom_path` takes precedence. Supports UTF-8 encoding with fallback to system default.
+</Aside>

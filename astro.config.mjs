@@ -6,7 +6,7 @@ import starlightThemeNext from "starlight-theme-next";
 import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
-  site: 'https://isekai.sh',
+  site: "https://isekai.sh",
   integrations: [
     starlight({
       plugins: [starlightThemeNext()],
@@ -61,10 +61,16 @@ export default defineConfig({
           ],
         },
         {
-          label: "Integrations",
+          label: "Isekai Comfy Node",
           items: [
-            "integrations/isekai-comfy-node",
-            "integrations/isekai-chrome-extension",
+            "comfyui",
+            "comfyui/installation",
+            "comfyui/updating",
+            "comfyui/setting-up-api-key",
+            "comfyui/image-nodes",
+            "comfyui/string-nodes",
+            "comfyui/ai-nodes",
+            "comfyui/troubleshooting",
           ],
         },
         {
