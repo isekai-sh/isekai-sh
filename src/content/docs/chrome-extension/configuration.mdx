@@ -1,0 +1,235 @@
+---
+title: Configuration
+description: Configure API URL, API key, and advanced settings for the Chrome extension
+---
+import { Steps, Aside, Code } from "@astrojs/starlight/components";
+
+The Isekai Chrome Extension requires configuration before it can start processing jobs. This guide covers all configuration options.
+
+## Initial Setup
+
+<Steps>
+
+1. Click the **Isekai extension icon** in your browser toolbar
+
+2. The popup will show a warning: "API not configured"
+
+3. Click the **Console** button to open the settings page
+
+4. Click the **Settings** button in the toolbar
+
+</Steps>
+
+## Required Settings
+
+### API URL
+
+The URL of your Isekai Core backend deployment.
+
+**Examples:**
+- `https://api.isekai.example.com` (production)
+- `https://isekai.ngrok-free.app` (development with ngrok)
+- `http://localhost:3000` (local development)
+
+<Aside type="note">
+The API URL should point to your backend server, not your frontend dashboard. It's the base URL without any path suffix.
+</Aside>
+
+### API Key
+
+Your personal API key generated from the Isekai dashboard.
+
+<Steps>
+
+1. Open your Isekai frontend dashboard (e.g., `https://dashboard.isekai.example.com`)
+
+2. Navigate to **Settings** (gear icon in sidebar)
+
+3. Scroll to the **API Keys** section
+
+4. Click **Create New Key**
+
+5. Copy the generated key (starts with `isk_`)
+
+6. Paste it into the extension's **API Key** field
+
+</Steps>
+
+<Aside type="caution">
+Never share your API key with anyone. It provides full access to your Isekai account. Treat it like a password.
+</Aside>
+
+## Advanced Settings
+
+### Retry Attempts
+
+**Default:** `10`
+**Range:** `1-20`
+
+Number of times the extension will attempt to communicate with the content script before marking a job as failed.
+
+When a DeviantArt page is slow to load or the content script doesn't respond immediately, the extension will retry with exponential backoff.
+
+**Recommended values:**
+- Fast connection: `5-8`
+- Slow connection: `10-15`
+- Very slow/unstable: `15-20`
+
+<Aside type="tip">
+If you see "Failed to communicate with content script" errors frequently, increase this value.
+</Aside>
+
+### Max Retry Delay
+
+**Default:** `30` seconds
+**Range:** `5-120` seconds
+
+Maximum wait time between retry attempts when the content script doesn't respond.
+
+The extension uses exponential backoff, starting at 1 second and doubling each time:
+- Attempt 1: 1 second
+- Attempt 2: 2 seconds
+- Attempt 3: 4 seconds
+- Attempt 4: 8 seconds
+- Attempt 5: 16 seconds
+- Attempt 6: 30 seconds (capped at max delay)
+- Subsequent attempts: 30 seconds
+
+**Recommended values:**
+- Fast DeviantArt pages: `15-30` seconds
+- Slow DeviantArt pages: `30-60` seconds
+- Very slow pages: `60-120` seconds
+
+<Aside type="note">
+This setting only affects communication with the content script, not the job polling interval from your backend.
+</Aside>
+
+## Saving Configuration
+
+<Steps>
+
+1. Fill in all required fields (API URL and API Key)
+
+2. Optionally adjust advanced settings
+
+3. Click **Save Settings**
+
+4. The modal will close and settings will be applied immediately
+
+5. Return to the popup to verify the API status shows "API HEALTHY"
+
+</Steps>
+
+## Verifying Configuration
+
+After saving your settings:
+
+1. **Check API Status:**
+   - Open the popup or console page
+   - Look for "API HEALTHY" in green
+   - If you see "API UNREACHABLE" or "NOT CONFIGURED", check your settings
+
+2. **Check Start Button:**
+   - The Start button should be enabled (not grayed out)
+   - If it's still disabled, verify both API URL and API Key are set
+
+3. **Test Connection:**
+   - Click **Start** in the popup
+   - Check the console page for logs
+   - You should see "Polling for next job..." messages
+
+## Configuration Storage
+
+All settings are stored locally in your browser using Chrome's storage API:
+
+- **Location:** Browser-specific encrypted storage
+- **Persistence:** Settings survive browser restarts
+- **Privacy:** Never synced to cloud (even with Chrome Sync enabled)
+- **Scope:** Per-browser profile (different profiles have separate settings)
+
+<Aside type="caution">
+If you clear your browser data and select "Site settings" or "Cookies and other site data", your extension configuration will be deleted. Keep a backup of your API key.
+</Aside>
+
+## Updating Configuration
+
+To change your settings later:
+
+<Steps>
+
+1. Open the console page (click **Console** in popup)
+
+2. Click the **Settings** button in the toolbar
+
+3. Modify the values you want to change
+
+4. Click **Save Settings**
+
+5. Changes take effect immediately without needing to restart
+
+</Steps>
+
+## Configuration for Multiple Accounts
+
+If you manage multiple Isekai accounts:
+
+1. **Use Browser Profiles:**
+   - Create a separate Chrome profile for each account
+   - Each profile has independent extension settings
+   - Switch profiles to switch accounts
+
+2. **Or Use Different Browsers:**
+   - Install in Chrome for Account A
+   - Install in Edge for Account B
+   - Each browser maintains separate settings
+
+<Aside type="tip">
+Browser profiles are the cleanest way to manage multiple accounts. You can switch between them quickly without reconfiguring.
+</Aside>
+
+## Resetting Configuration
+
+To reset all settings to defaults:
+
+<Steps>
+
+1. Open your browser's extensions page (`chrome://extensions/`)
+
+2. Find **Isekai** in the list
+
+3. Click **Remove** to uninstall
+
+4. Reinstall the extension using the [installation guide](/chrome-extension/installation)
+
+5. Reconfigure from scratch
+
+</Steps>
+
+Alternatively, you can clear just the extension's data:
+
+<Steps>
+
+1. Right-click the extension icon
+
+2. Select **Inspect popup** (opens DevTools)
+
+3. In the Console tab, run:
+   ```javascript
+   chrome.storage.local.clear()
+   ```
+
+4. Close DevTools and reload the extension
+
+</Steps>
+
+## Next Steps
+
+<Steps>
+
+1. [Learn how to use the popup widget and console](/chrome-extension/usage)
+
+2. Start processing sales automatically
+
+3. If you encounter issues, check the [troubleshooting guide](/chrome-extension/troubleshooting)
+
+</Steps>

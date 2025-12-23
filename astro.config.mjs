@@ -74,6 +74,16 @@ export default defineConfig({
           ],
         },
         {
+          label: "Chrome Extension",
+          items: [
+            "chrome-extension",
+            "chrome-extension/installation",
+            "chrome-extension/configuration",
+            "chrome-extension/usage",
+            "chrome-extension/troubleshooting",
+          ],
+        },
+        {
           label: "Contributing",
           items: [
             "contributing/overview",
@@ -96,6 +106,11 @@ export default defineConfig({
             {
               label: "Isekai Comfy Node GitHub",
               link: "https://github.com/isekai-sh/isekai-comfy-node",
+              attrs: { target: "_blank", rel: "noopener" },
+            },
+            {
+              label: "Chrome Extension GitHub",
+              link: "https://github.com/isekai-sh/isekai-chrome-extension",
               attrs: { target: "_blank", rel: "noopener" },
             },
           ],

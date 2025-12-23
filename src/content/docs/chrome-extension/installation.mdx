@@ -1,0 +1,236 @@
+---
+title: Installation
+description: Install the Isekai Chrome Extension on Windows, macOS, or Linux
+---
+import { Steps, Aside, Tabs, TabItem, Code } from "@astrojs/starlight/components";
+
+<Aside type="tip">
+The extension works on any Chromium-based browser including Chrome, Edge, Brave, Opera, and Vivaldi.
+</Aside>
+
+## Download the Extension
+
+<Steps>
+
+1. Navigate to the [latest release page](https://github.com/isekai-sh/isekai-chrome-extension/releases/latest)
+
+2. Download `isekai-chrome-extension.zip` from the Assets section
+
+3. Extract the ZIP file to a permanent location on your computer
+
+</Steps>
+
+<Aside type="caution">
+Do not delete the extracted folder after installation. The browser loads the extension from this location, so moving or deleting it will break the extension.
+</Aside>
+
+## Browser Installation
+
+<Tabs>
+  <TabItem label="Chrome">
+    <Steps>
+
+    1. Open Chrome and navigate to `chrome://extensions/`
+
+    2. Enable **Developer mode** using the toggle in the top-right corner
+
+    3. Click **Load unpacked** button
+
+    4. Select the extracted `isekai-chrome-extension` folder
+
+    5. The extension icon should appear in your toolbar
+
+    </Steps>
+  </TabItem>
+
+  <TabItem label="Edge">
+    <Steps>
+
+    1. Open Edge and navigate to `edge://extensions/`
+
+    2. Enable **Developer mode** using the toggle in the left sidebar
+
+    3. Click **Load unpacked** button
+
+    4. Select the extracted `isekai-chrome-extension` folder
+
+    5. The extension icon should appear in your toolbar
+
+    </Steps>
+  </TabItem>
+
+  <TabItem label="Brave">
+    <Steps>
+
+    1. Open Brave and navigate to `brave://extensions/`
+
+    2. Enable **Developer mode** using the toggle in the top-right corner
+
+    3. Click **Load unpacked** button
+
+    4. Select the extracted `isekai-chrome-extension` folder
+
+    5. The extension icon should appear in your toolbar
+
+    </Steps>
+  </TabItem>
+
+  <TabItem label="Opera">
+    <Steps>
+
+    1. Open Opera and navigate to `opera://extensions/`
+
+    2. Enable **Developer mode** using the toggle in the top-right corner
+
+    3. Click **Load unpacked** button
+
+    4. Select the extracted `isekai-chrome-extension` folder
+
+    5. The extension icon should appear in your toolbar
+
+    </Steps>
+  </TabItem>
+</Tabs>
+
+## Platform-Specific Instructions
+
+### Windows
+
+<Steps>
+
+1. **Download** the ZIP file from GitHub releases
+
+2. **Right-click** the ZIP file and select **Extract All...**
+
+3. Choose a permanent location (e.g., `C:\Program Files\IsekaI Chrome Extension\`)
+
+4. **Important**: Unblock the files if Windows marks them as downloaded from the internet:
+   - Right-click the extracted folder
+   - Select **Properties**
+   - Check **Unblock** at the bottom
+   - Click **Apply to all files**
+
+5. Follow the browser installation steps above
+
+</Steps>
+
+<Aside type="note">
+On Windows, it's recommended to extract to a location outside your Downloads folder to avoid accidental deletion.
+</Aside>
+
+### macOS
+
+<Steps>
+
+1. **Download** the ZIP file from GitHub releases
+
+2. **Double-click** the ZIP file to extract (or use `unzip` in Terminal)
+
+3. Move the extracted folder to a permanent location (e.g., `~/Applications/isekai-chrome-extension/`)
+
+4. **Important**: If macOS shows a security warning, go to **System Settings** > **Privacy & Security** and allow the extension
+
+5. Follow the browser installation steps above
+
+</Steps>
+
+<Aside type="note">
+On macOS, avoid storing the extension in `/tmp/` or `~/Downloads/` as these locations may be automatically cleaned.
+</Aside>
+
+### Linux
+
+<Steps>
+
+1. **Download** the ZIP file from GitHub releases
+
+2. Extract using file manager or terminal:
+   ```bash
+   unzip isekai-chrome-extension.zip -d ~/opt/isekai-chrome-extension
+   ```
+
+3. Ensure proper permissions:
+   ```bash
+   chmod -R 755 ~/opt/isekai-chrome-extension
+   ```
+
+4. Follow the browser installation steps above
+
+</Steps>
+
+<Aside type="tip">
+On Linux, `/opt/` or `~/.local/share/` are good locations for installing browser extensions.
+</Aside>
+
+## Pinning the Extension
+
+After installation, pin the extension to your toolbar for easy access:
+
+<Steps>
+
+1. Click the **Extensions** puzzle icon in your browser toolbar
+
+2. Find **Isekai** in the list
+
+3. Click the **pin icon** next to it
+
+4. The extension icon will now appear in your toolbar
+
+</Steps>
+
+## Keyboard Shortcuts
+
+The extension includes default keyboard shortcuts:
+
+- **Open Popup**: `Ctrl+Shift+I` (macOS: `Cmd+Shift+I`)
+- **Open Console**: `Ctrl+Shift+L` (macOS: `Cmd+Shift+L`)
+
+You can customize these shortcuts:
+
+<Tabs>
+  <TabItem label="Chrome/Edge/Brave">
+    1. Navigate to `chrome://extensions/shortcuts` (or `edge://extensions/shortcuts`)
+    2. Find **Isekai** in the list
+    3. Click the pencil icon to edit shortcuts
+  </TabItem>
+
+  <TabItem label="Opera">
+    1. Navigate to `opera://extensions/shortcuts`
+    2. Find **Isekai** in the list
+    3. Click the pencil icon to edit shortcuts
+  </TabItem>
+</Tabs>
+
+## Updating the Extension
+
+When a new version is released:
+
+<Steps>
+
+1. Download the new ZIP file from GitHub releases
+
+2. Extract to the **same location** as your current installation (overwrite existing files)
+
+3. Go to your browser's extensions page
+
+4. Click the **reload icon** on the Isekai extension card
+
+5. Verify the new version number in the extension details
+
+</Steps>
+
+<Aside type="caution">
+Always keep a backup of your API key before updating. While configuration is stored separately, it's good practice to note down your settings.
+</Aside>
+
+## Next Steps
+
+<Steps>
+
+1. [Configure your API URL and API key](/chrome-extension/configuration)
+
+2. [Learn how to use the popup and console](/chrome-extension/usage)
+
+3. Start processing sales automatically
+
+</Steps>

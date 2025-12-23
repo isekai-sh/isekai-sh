@@ -1,0 +1,331 @@
+---
+title: Usage Guide
+description: Learn how to use the extension to manage your exclusive sales
+---
+import { Steps, Aside, Tabs, TabItem } from "@astrojs/starlight/components";
+
+The Isekai Chrome Extension provides two interfaces to help you manage your exclusive sales: a compact popup widget for quick controls and a full-featured console page for monitoring your sales activities.
+
+## Popup Widget
+
+The popup widget is accessed by clicking the extension icon in your browser toolbar.
+
+### Status Indicators
+
+**Extension Status:**
+- **Stopped** (gray): Extension is not active
+- **Active** (green): Extension is ready and monitoring your sales queue
+- **Processing** (yellow): Currently helping with a sale listing
+
+**Connection Status:**
+- **Checking** (gray): Verifying connection to your dashboard
+- **API Healthy** (green): Successfully connected to your Isekai dashboard
+- **API Unreachable** (red): Cannot connect to your dashboard
+- **Not Configured** (gray): Setup required (API URL or API key not set)
+
+### Statistics
+
+When the extension is active, you'll see:
+
+- **Processed**: Total sales you've listed (succeeded + failed)
+- **Succeeded**: Sales successfully listed on DeviantArt
+- **Failed**: Listings that encountered errors and need attention
+
+Statistics persist across browser sessions and reset only when you clear logs.
+
+### Controls
+
+**Start Button:**
+- Activates the extension to begin monitoring your sales queue
+- Only enabled when your dashboard connection is configured
+- Turns into a **Stop** button when active
+
+**Stop Button:**
+- Pauses the extension from checking for new sales to list
+- Allows currently processing listings to complete
+- Turns back into a **Start** button when paused
+
+**Console Button:**
+- Opens the full activity console in a new tab
+- Shows detailed logs and listing history
+
+## Console Page
+
+The console page provides a comprehensive view of all sales listing activities, helping you maintain detailed business records.
+
+### Opening the Console
+
+<Tabs>
+  <TabItem label="From Popup">
+    Click the **Console** button in the popup widget
+  </TabItem>
+
+  <TabItem label="From Context Menu">
+    1. Right-click the extension icon
+    2. Select **Options**
+  </TabItem>
+
+  <TabItem label="Keyboard Shortcut">
+    Press `Ctrl+Shift+L` (macOS: `Cmd+Shift+L`)
+  </TabItem>
+
+  <TabItem label="Extensions Page">
+    1. Go to `chrome://extensions/`
+    2. Find **Isekai** in the list
+    3. Click **Details** > **Extension options**
+  </TabItem>
+</Tabs>
+
+### Console Layout
+
+The console has three main areas:
+
+1. **Left Panel (2/3 width):** Real-time activity log
+2. **Right Panel (1/3 width):** Listing history
+3. **Bottom Bar:** Statistics summary
+
+### Activity Log
+
+**Log Levels:**
+- **DEBUG** (gray): Technical details about extension operations
+- **INFO** (blue): General information (queue checks, listings received, etc.)
+- **SUCCESS** (green): Successfully completed listings
+- **WARNING** (yellow): Non-critical issues that may need attention
+- **ERROR** (red): Failed operations requiring review
+
+**Log Filtering:**
+
+<Steps>
+
+1. Use the checkboxes at the top to show/hide log levels:
+   - DEBUG
+   - INFO
+   - SUCCESS
+   - WARNING
+   - ERROR
+
+2. Unchecking a level hides all logs of that type
+
+3. Your filter preferences are saved automatically
+
+</Steps>
+
+**Log Limit:**
+
+Select how many recent logs to display:
+- 100 (faster rendering)
+- 200
+- 500
+- 1000 (default)
+- All (may slow down on very large log files)
+
+**Auto-Scroll:**
+
+Toggle the **SCROLL** checkbox to enable/disable automatic scrolling to the latest log entry.
+
+<Aside type="tip">
+Disable auto-scroll when you want to review older logs without the view jumping to the bottom.
+</Aside>
+
+### Listing History
+
+The right panel shows all your exclusive sale listings with:
+
+- **Artwork Title**: Name of the deviation
+- **Deviation URL**: Link to the DeviantArt page (clickable)
+- **Price**: Listing price in USD
+- **Listing ID**: Unique identifier for your records
+- **Status**: Completed (green) / Failed (red) / Processing (yellow)
+- **Timestamp**: When the listing was created
+
+Listings are shown in reverse chronological order (newest first) for easy reference.
+
+### Toolbar Actions
+
+**Reset Stuck:**
+- Resets listings that appear stuck in "processing" state
+- Useful for handling connection interruptions
+
+**Cancel All:**
+- Cancels all pending listings in your queue
+- Currently processing listings will complete
+
+**Export:**
+- Downloads all activity logs as a JSON file
+- Useful for business record-keeping and tax purposes
+- Includes timestamps, prices, and listing results
+
+**Copy:**
+- Copies visible activity logs to clipboard
+- Helpful for quick sharing or reporting
+
+**Clear:**
+- Removes all logs and listing history from display
+- Does not affect your actual DeviantArt listings
+- Statistics are reset to zero
+
+**Settings:**
+- Opens the configuration panel
+- Allows you to update dashboard connection and preferences
+
+**Start/Stop:**
+- Controls whether the extension is actively monitoring your queue
+- Larger button for convenient access
+
+### Statistics Bar
+
+Bottom bar shows real-time business metrics:
+
+- **Pending**: Listings waiting in your queue
+- **Processing**: Listings currently being created
+- **Processed**: Total listings you've created
+- **Succeeded**: Successfully created listings
+- **Failed**: Listings that encountered errors and need review
+
+<Aside type="note">
+Pending and Processing counts are synced from your Isekai dashboard. Processed/Succeeded/Failed are tracked locally for your records.
+</Aside>
+
+## Typical Workflow
+
+<Steps>
+
+1. **Activate the Extension:**
+   - Click the extension icon in your toolbar
+   - Verify connection status shows "API Healthy"
+   - Click **Start** to begin monitoring your queue
+
+2. **Monitor Your Activity:**
+   - Open the console page to view detailed logs
+   - Extension checks your queue every 60 seconds
+   - Activity is logged for your business records
+
+3. **When You Have a Listing Ready:**
+   - Log shows: "Received listing: [Artwork Title]"
+   - Extension opens DeviantArt in a background tab
+   - Form is filled according to your queue settings:
+     - Navigates to the artwork page
+     - Opens the exclusive sale form
+     - Enters your specified price
+     - Submits the listing
+     - Waits for DeviantArt's confirmation
+
+4. **Listing Completes:**
+   - Log shows: "Listing completed successfully"
+   - Tab closes automatically
+   - Listing appears in your history panel
+   - Statistics update for your records
+
+5. **Handling Issues:**
+   - If a listing fails, details are logged for review
+   - Extension will retry up to 3 times
+   - Check error details to resolve any issues
+
+</Steps>
+
+## Keyboard Shortcuts
+
+### Global Shortcuts
+
+- `Ctrl+Shift+I` / `Cmd+Shift+I`: Open popup widget
+- `Ctrl+Shift+L` / `Cmd+Shift+L`: Open console page
+
+### Console Page Shortcuts
+
+While in the console page, you can use:
+
+- **Scroll to bottom**: Press `End` key
+- **Scroll to top**: Press `Home` key
+- **Search logs**: Press `Ctrl+F` / `Cmd+F` (browser's find feature)
+
+## Best Practices for Artists
+
+### Maintain Your DeviantArt Session
+
+The extension works with your existing DeviantArt account. For best results:
+
+- Stay logged into DeviantArt in the same browser profile
+- Keep your session active (don't log out while the extension is running)
+- Use the same browser for both browsing DeviantArt and running the extension
+
+If your session expires, the extension will pause and notify you to log back in.
+
+### Review Your Activity Regularly
+
+Check the console page to maintain oversight of your business:
+
+- Verify listings are being created successfully
+- Catch any pricing or configuration issues early
+- Monitor for patterns if multiple listings fail
+- Export logs for tax records and business documentation
+
+### Organize Your Queue
+
+For efficient listing management:
+
+- Queue up multiple artworks in your Isekai dashboard
+- Set accurate prices before adding to queue
+- Process listings during times when you're available to monitor
+- Start with small batches to ensure everything works correctly
+
+### Resource Considerations
+
+The extension works respectfully with your browser:
+
+- Background tabs open briefly and close automatically
+- Listings are processed one at a time to avoid overwhelming DeviantArt
+- Your regular browsing is not interrupted
+
+For large listing batches (50+ artworks):
+
+- Allow adequate time for processing
+- Monitor your computer's performance
+- Consider processing in smaller batches for better control
+
+### Keep Records
+
+Maintain good business practices:
+
+1. Export activity logs regularly for your records
+2. Back up your API credentials securely
+3. Review listing history for accounting purposes
+4. Save configuration settings before browser updates
+
+These records help with tax preparation and business management.
+
+## Troubleshooting Common Issues
+
+### Extension Not Starting
+
+**Symptoms:** Start button is disabled or grayed out
+
+**Solutions:**
+1. Verify API URL and API key are configured
+2. Check API status shows "Healthy"
+3. Try clicking Settings and saving configuration again
+
+### No Jobs Processing
+
+**Symptoms:** Extension is running but no jobs appear
+
+**Solutions:**
+1. Verify your backend queue has pending items
+2. Check you're logged into DeviantArt
+3. Review console logs for errors
+4. Ensure polling interval hasn't been changed to a very long value
+
+### Jobs Failing Repeatedly
+
+**Symptoms:** Multiple jobs showing "Failed" status
+
+**Solutions:**
+1. Check you're logged into DeviantArt
+2. Verify deviation URLs are valid
+3. Review error messages in console logs
+4. Try processing one job manually to identify the issue
+
+For detailed troubleshooting, see the [Troubleshooting Guide](/chrome-extension/troubleshooting).
+
+## Next Steps
+
+If you encounter issues not covered here, check the [Troubleshooting Guide](/chrome-extension/troubleshooting) for detailed solutions.

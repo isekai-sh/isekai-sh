@@ -1,0 +1,101 @@
+---
+title: Introduction
+description: Browser extension to help artists manage DeviantArt exclusive sales
+---
+import { Card, CardGrid, LinkCard, Aside } from "@astrojs/starlight/components";
+
+Isekai Chrome Extension helps professional artists manage their DeviantArt exclusive sales efficiently. It integrates with your [Isekai Core](/overview/start-here) deployment to streamline your sales workflow, allowing you to focus on creating art while maintaining control over your business operations.
+
+## Why This Extension Exists
+
+DeviantArt's official API does not currently provide programmatic access to exclusive sales management. This extension bridges that gap, enabling professional artists who manage large portfolios to handle their exclusive sales more efficiently.
+
+The extension is designed with ethics and DeviantArt's infrastructure in mind:
+
+- **Respectful Operation**: Opens each artwork page once, fills the form, and closes immediately - just as a human would
+- **Rate Limiting**: Processes listings one at a time with appropriate delays between operations
+- **No Server Burden**: Designed to not create unnecessary load on DeviantArt's servers
+- **Your Account Only**: Works exclusively with your own account and your own artworks
+- **Transparent Activity**: All operations are logged for your review and oversight
+
+We do not promote or enable spam or spam-like behavior. The extension is built for legitimate business use by professional artists managing their own work.
+
+## Features Overview
+
+<CardGrid>
+  <Card title="Your Account, Your Control" icon="approve-check">
+    Works directly with your DeviantArt account using your existing browser session. You remain logged in and in full control at all times.
+  </Card>
+  <Card title="Efficient Workflow" icon="rocket">
+    Handles repetitive sales form filling in the background while you continue working on your art or browsing other pages.
+  </Card>
+  <Card title="Activity Monitoring" icon="seti:shell">
+    Track all sales activities with a detailed log viewer, helping you maintain oversight of your business operations.
+  </Card>
+  <Card title="Lightweight Integration" icon="star">
+    Simple browser extension (~500KB) that works with your existing Chrome installation. No additional software required.
+  </Card>
+</CardGrid>
+
+## How It Works
+
+The extension acts as your personal assistant for managing exclusive sales:
+
+1. **Queue Management**: Connects to your Isekai dashboard where you organize which artworks to list for sale
+2. **Form Assistance**: When you have sales ready to process, the extension helps fill out DeviantArt's exclusive sale forms on your behalf
+3. **Activity Tracking**: Provides a detailed activity log so you can review all sales operations performed on your account
+
+As an artist, you maintain full control: you decide which artworks to sell, set the prices in your dashboard, and the extension simply helps with the repetitive task of filling out forms on DeviantArt.
+
+## Available Interfaces
+
+<LinkCard
+  title="Popup Widget"
+  description="Quick access toolbar widget showing status, stats, and controls"
+  href="/chrome-extension/usage#popup-widget"
+/>
+
+<LinkCard
+  title="Console Page"
+  description="Full-featured terminal interface with real-time logs, filtering, and job history"
+  href="/chrome-extension/usage#console-page"
+/>
+
+## Getting Started
+
+<LinkCard
+  title="Installation Guide"
+  description="Install the extension on Windows, macOS, or Linux"
+  href="/chrome-extension/installation"
+/>
+
+<LinkCard
+  title="Configuration"
+  description="Configure API URL, API key, and advanced settings"
+  href="/chrome-extension/configuration"
+/>
+
+<LinkCard
+  title="Usage Guide"
+  description="Learn how to use the popup widget and console page"
+  href="/chrome-extension/usage"
+/>
+
+<LinkCard
+  title="Troubleshooting"
+  description="Common issues and solutions"
+  href="/chrome-extension/troubleshooting"
+/>
+
+## Requirements
+
+- Chrome, Edge, Brave, or any Chromium-based browser
+- Running Isekai Core deployment - [See deployment guides](/deployment)
+- DeviantArt account (must be logged in)
+- API key from your Isekai instance
+
+## Quick Links
+
+- [GitHub Repository](https://github.com/isekai-sh/isekai-chrome-extension)
+- [Latest Release](https://github.com/isekai-sh/isekai-chrome-extension/releases/latest)
+- [Report Issues](https://github.com/isekai-sh/isekai-chrome-extension/issues)

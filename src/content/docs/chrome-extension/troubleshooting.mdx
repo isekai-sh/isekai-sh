@@ -1,0 +1,517 @@
+---
+title: Troubleshooting
+description: Common issues, error messages, and solutions for the Chrome extension
+---
+import { Steps, Aside } from "@astrojs/starlight/components";
+
+This guide covers common issues you might encounter and how to resolve them.
+
+## Extension Won't Start
+
+### Start Button Disabled
+
+**Symptoms:**
+- Start button is grayed out
+- Cannot click to begin processing
+
+**Causes:**
+- API URL not configured
+- API key not configured
+- Both API URL and key are missing
+
+**Solutions:**
+
+<Steps>
+
+1. Click the **Settings** button (gear icon)
+
+2. Verify both fields are filled:
+   - API URL: Should be your backend URL (e.g., `https://api.isekai.example.com`)
+   - API Key: Should start with `isk_`
+
+3. Click **Save Settings**
+
+4. Check that the Start button is now enabled
+
+</Steps>
+
+### API Status Shows "API Unreachable"
+
+**Symptoms:**
+- API status indicator is red
+- Console shows connection errors
+
+**Causes:**
+- Backend server is offline
+- Incorrect API URL
+- Network connectivity issues
+- CORS configuration issues
+
+**Solutions:**
+
+<Steps>
+
+1. **Verify Backend is Running:**
+   - Try accessing your backend URL in a browser
+   - You should see a response (even if it's an error page)
+
+2. **Check API URL Format:**
+   - Should NOT include trailing slash: `https://api.isekai.example.com` (correct)
+   - Should NOT include path suffix: `https://api.isekai.example.com/api` (incorrect)
+   - Should use HTTPS in production
+
+3. **Test Connection Manually:**
+   - Open browser DevTools (F12)
+   - Go to Console tab
+   - Run: `fetch('YOUR_API_URL/health').then(r => r.json()).then(console.log)`
+   - Should return `{"status": "healthy"}`
+
+4. **Check Network:**
+   - Verify you can access other websites
+   - Try disabling VPN if you're using one
+   - Check firewall isn't blocking the connection
+
+</Steps>
+
+<Aside type="note">
+If you're using localhost or ngrok during development, make sure the backend is accessible from your browser.
+</Aside>
+
+### API Status Shows "Not Configured"
+
+**Symptoms:**
+- Status shows gray "Not Configured"
+- Cannot start extension
+
+**Solutions:**
+
+<Steps>
+
+1. Open Settings
+
+2. Enter your API URL and API Key
+
+3. Click Save Settings
+
+4. Wait a few seconds for status to update to "API Healthy"
+
+</Steps>
+
+## Listings Not Being Created
+
+### Extension Running But No Listings Appear
+
+**Symptoms:**
+- Extension shows "Active" status
+- Console shows checking queue messages
+- No listings are being created
+
+**Causes:**
+- No pending listings in your queue
+- Queue items assigned to different browser session
+- Connection issue with dashboard
+
+**Solutions:**
+
+<Steps>
+
+1. **Check Your Queue:**
+   - Log into your Isekai dashboard
+   - Navigate to Sale Queue
+   - Verify you have artworks with "Pending" status
+
+2. **Verify Browser Session:**
+   - Extension creates a unique session ID per browser
+   - Queue items should be unassigned or assigned to this session
+   - Check console logs for session information
+
+3. **Check Activity Logs:**
+   - Open console page
+   - Look for queue check messages every 60 seconds
+   - If you don't see these, try restarting the extension
+
+4. **Restart Extension:**
+   - Click Stop
+   - Wait 5 seconds
+   - Click Start again
+
+</Steps>
+
+### DeviantArt Session Expired
+
+**Symptoms:**
+- Logs show "User is not logged in"
+- Jobs fail immediately
+- Console shows login-related errors
+
+**Solutions:**
+
+<Steps>
+
+1. Open [DeviantArt](https://www.deviantart.com) in a new tab
+
+2. Log in with your credentials
+
+3. Verify you see your profile icon in the top-right
+
+4. Return to the extension and click Start
+
+5. The extension should now detect your session
+
+</Steps>
+
+<Aside type="caution">
+The extension uses your browser's DeviantArt cookies. If you log out of DeviantArt or clear cookies, the extension will stop working until you log back in.
+</Aside>
+
+## Listings Failing to Create
+
+### "Failed to communicate with content script"
+
+**Symptoms:**
+- Logs show: "Failed to communicate with content script after X attempts"
+- Listings fail without opening DeviantArt tabs
+- Or tabs open but the form isn't filled
+
+**Causes:**
+- DeviantArt pages loading slowly
+- Browser extension conflict
+- Insufficient retry attempts configured
+- Network connectivity issues
+
+**Solutions:**
+
+<Steps>
+
+1. **Increase Retry Attempts:**
+   - Open Settings
+   - Set "Retry Attempts" to 15-20
+   - Set "Max Retry Delay" to 60 seconds
+   - Save settings
+
+2. **Check Browser Extensions:**
+   - Disable ad blockers temporarily
+   - Disable script blockers (uBlock Origin, NoScript, etc.)
+   - Try in an Incognito window with only Isekai extension enabled
+
+3. **Clear Browser Cache:**
+   - Go to `chrome://settings/clearBrowserData`
+   - Select "Cached images and files"
+   - Clear data
+   - Restart browser
+
+4. **Verify DeviantArt Accessibility:**
+   - Open DeviantArt manually
+   - Try navigating to a deviation page
+   - Ensure pages load normally
+
+</Steps>
+
+### "Could not find Sell Deviation button"
+
+**Symptoms:**
+- Jobs fail with button not found error
+- Console shows timeout waiting for elements
+
+**Causes:**
+- Not logged into DeviantArt
+- Deviation already sold
+- DeviantArt UI changed
+- Page didn't load fully
+
+**Solutions:**
+
+<Steps>
+
+1. **Verify Login:**
+   - Open DeviantArt in a new tab
+   - Ensure you're logged in
+   - Check your profile is accessible
+
+2. **Check Deviation Status:**
+   - Open the deviation URL manually
+   - Verify it's not already sold as exclusive
+   - Confirm you own the deviation
+
+3. **Test Manual Sale:**
+   - Try selling a deviation manually
+   - Click through the "Sell Deviation" flow
+   - Ensure the UI matches what the extension expects
+
+4. **Update Extension:**
+   - Check for new releases on GitHub
+   - DeviantArt may have changed their UI
+   - Updated extension may support new layout
+
+</Steps>
+
+### "Price validation failed"
+
+**Symptoms:**
+- Jobs fail during price input
+- Console shows price-related errors
+
+**Causes:**
+- Price outside DeviantArt's allowed range
+- Invalid price format from backend
+- Currency conversion issues
+
+**Solutions:**
+
+<Steps>
+
+1. **Check Price Range:**
+   - DeviantArt typically allows $1-$500 USD
+   - Verify your backend isn't sending prices outside this range
+
+2. **Verify Queue Data:**
+   - Check the listing price in your dashboard queue
+   - Price should be in cents (e.g., 15000 = $150)
+   - Extension converts cents to dollars automatically
+
+3. **Review Console Logs:**
+   - Look for the exact price being set
+   - Check for: "Setting price to: $X"
+   - Verify the value looks correct
+
+</Steps>
+
+## Performance Issues
+
+### Extension Slowing Down Browser
+
+**Symptoms:**
+- Browser feels slow or unresponsive
+- High CPU or memory usage
+- Tabs take long to load
+
+**Causes:**
+- Large queue being processed
+- Large log file (1000+ entries)
+- Multiple browser tabs open
+
+**Solutions:**
+
+<Steps>
+
+1. **Clear Logs:**
+   - Open console page
+   - Click "Clear" button
+   - This removes log entries from memory
+
+2. **Reduce Log Limit:**
+   - Change log limit from 1000 to 100 or 200
+   - This reduces memory usage
+
+3. **Close Unnecessary Tabs:**
+   - Close other DeviantArt tabs
+   - Extension opens its own tabs as needed
+
+4. **Restart Browser:**
+   - Close all browser windows
+   - Reopen and start extension fresh
+
+</Steps>
+
+### Console Page Loading Slowly
+
+**Symptoms:**
+- Console page takes long to open
+- Scrolling is laggy
+- High memory usage
+
+**Causes:**
+- Large log file (1000+ entries)
+- Many listings in history
+
+**Solutions:**
+
+<Steps>
+
+1. **Reduce Log Limit:**
+   - Select "100" or "200" from the log limit dropdown
+   - Fewer logs render faster
+
+2. **Clear Old Data:**
+   - Click "Clear" to remove logs and listing history
+   - This resets statistics but improves performance
+
+3. **Filter Logs:**
+   - Uncheck log levels you don't need (DEBUG, INFO)
+   - Rendering fewer logs improves speed
+
+</Steps>
+
+## Configuration Issues
+
+### Settings Not Saving
+
+**Symptoms:**
+- Enter settings and click Save
+- Settings revert after reopening modal
+- Extension doesn't use new configuration
+
+**Causes:**
+- Browser storage quota exceeded
+- Extension permissions issue
+- Chrome storage error
+
+**Solutions:**
+
+<Steps>
+
+1. **Check Browser Storage:**
+   - Go to `chrome://extensions/`
+   - Find Isekai
+   - Click "Details"
+   - Scroll to "Permissions"
+   - Verify "storage" permission is enabled
+
+2. **Clear Extension Storage:**
+   - Right-click extension icon
+   - Select "Inspect popup"
+   - In Console, run: `chrome.storage.local.clear()`
+   - Close DevTools
+   - Reconfigure from scratch
+
+3. **Reinstall Extension:**
+   - Remove extension completely
+   - Reinstall from ZIP file
+   - Reconfigure settings
+
+</Steps>
+
+### Lost Configuration After Browser Update
+
+**Symptoms:**
+- Settings disappeared after updating browser
+- Extension shows "Not Configured"
+- Had to re-enter API key
+
+**Causes:**
+- Browser update reset extension data
+- Extension storage was corrupted
+- Rare Chrome bug
+
+**Solutions:**
+
+<Steps>
+
+1. **Reconfigure:**
+   - Enter your API URL and API key again
+   - Settings should persist going forward
+
+2. **Backup Configuration:**
+   - Keep a note of your API URL and key
+   - Store in password manager for easy recovery
+
+3. **Use Browser Profile Backup:**
+   - Enable Chrome Sync (Settings > Sync)
+   - While extension settings don't sync, profile backups can help
+
+</Steps>
+
+## Technical Debugging
+
+### Viewing Extension Logs
+
+For advanced debugging, you can access the extension's internal logs:
+
+<Steps>
+
+1. **Service Worker Logs:**
+   - Go to `chrome://extensions/`
+   - Find Isekai
+   - Click "Service worker" link
+   - DevTools opens showing background logs
+
+2. **Content Script Logs:**
+   - Open a DeviantArt tab
+   - Press F12 to open DevTools
+   - Go to Console tab
+   - Look for logs prefixed with "[Isekai]"
+
+3. **Popup Logs:**
+   - Right-click extension icon
+   - Select "Inspect popup"
+   - Check Console tab for errors
+
+</Steps>
+
+### Checking Network Requests
+
+To debug API communication:
+
+<Steps>
+
+1. Right-click extension icon > Inspect popup
+
+2. Go to Network tab in DevTools
+
+3. Click extension icon to open popup
+
+4. Check for requests to your API URL
+
+5. Click on each request to see:
+   - Status code (should be 200)
+   - Response data
+   - Error messages
+
+</Steps>
+
+### Resetting Everything
+
+If all else fails, completely reset the extension:
+
+<Steps>
+
+1. **Remove Extension:**
+   - Go to `chrome://extensions/`
+   - Click "Remove" on Isekai
+
+2. **Clear Browser Data:**
+   - Go to `chrome://settings/clearBrowserData`
+   - Select "Cookies and site data"
+   - Clear data
+
+3. **Reinstall:**
+   - Follow [installation guide](/chrome-extension/installation)
+   - Reconfigure from scratch
+
+4. **Test with Minimal Setup:**
+   - Disable all other extensions
+   - Test in Incognito mode
+   - Use default browser settings
+
+</Steps>
+
+## Getting Help
+
+If you can't resolve your issue:
+
+1. **Check GitHub Issues:**
+   - Visit [GitHub Issues](https://github.com/isekai-sh/isekai-chrome-extension/issues)
+   - Search for similar problems
+   - See if there's a known solution
+
+2. **Export Logs:**
+   - Open console page
+   - Click "Export" button
+   - Save the JSON file
+
+3. **Report Issue:**
+   - Create a new GitHub issue
+   - Include exported logs
+   - Describe steps to reproduce
+   - Mention browser version and OS
+
+4. **Provide Details:**
+   - Browser name and version
+   - Operating system
+   - Extension version
+   - Error messages from console
+   - Screenshots if relevant
+
+<Aside type="tip">
+When reporting issues, more detail is always better. Include console logs, error messages, and exact steps to reproduce the problem.
+</Aside>
