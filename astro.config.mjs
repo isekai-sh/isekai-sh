@@ -29,7 +29,7 @@ export default defineConfig({
           link: "https://github.com/isekai-sh/isekai-core/blob/main/CHANGELOG.md",
           attrs: { target: "_blank", rel: "noopener" },
           badge: {
-            text: "v0.1.0-alpha.2",
+            text: "v0.1.0-alpha.3",
             variant: "default",
           },
         },
@@ -48,7 +48,7 @@ export default defineConfig({
           label: "Requirements",
           items: [
             "requirements/deviantart-application",
-            "requirements/cloudflare-r2-setup",
+            "requirements/storage-setup",
           ],
         },
         {

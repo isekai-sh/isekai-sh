@@ -4,11 +4,7 @@ title: Run Locally
 
 import { Steps, Aside } from "@astrojs/starlight/components";
 
-<Aside>
-As of v0.1.0-alpha.2, only Cloudflare R2 is officially supported. We will support other S3 compatible storage options such as AWS S3, Digital Ocean Space, MinIO, and other object storage in the future. Local installation still need Cloudflare R2 to properly function.
-</Aside>
-
-You don't need a VPS to run Isekai Core if you prefer local installation. You can run the full application on your personal computer (Windows, macOS, or Linux) using Docker Desktop and Isekai Core will still function almost 100% offline.
+You don't need a VPS to run Isekai Core if you prefer local installation. You can run the full application on your personal computer (Windows, macOS, or Linux) using Docker Desktop and Isekai Core will function entirely offline (except when publishing to DeviantArt).
 
 This is the recommended method for:
 
@@ -16,11 +12,14 @@ This is the recommended method for:
 - Personal usage
 - Developing custom integrations
 
+<Aside type="tip">
+**Zero Configuration Storage:** Isekai now includes MinIO for S3-compatible storage out of the box. No external storage account needed for local development!
+</Aside>
+
 ## Prerequisites
 
 - Docker Desktop: Download and install [Docker Desktop for your Operating System](https://www.docker.com/products/docker-desktop/)
 - [DeviantArt Application](/requirements/deviantart-application)
-- [Cloudflare R2 Storage](/requirements/cloudflare-r2-setup)
 
 ## Installation Steps
 
@@ -35,17 +34,17 @@ This is the recommended method for:
     mkdir isekai
     cd isekai
 
-    # Download the production compose file
-    curl -o docker-compose.yml [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml)
+    # Download the Docker Compose file
+    curl -o docker-compose.yml https://raw.githubusercontent.com/isekai-sh/isekai-core/main/docker-compose.yml
 
     # Download the env example
-    curl -o .env [https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example](https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example)
+    curl -o .env https://raw.githubusercontent.com/isekai-sh/isekai-core/main/.env.example
     ```
 
     __Note: On Windows PowerShell, you might need to use Invoke-WebRequest or just download the files manually from the browser.__
 
 2. Configure your [Environment Variables](/resources/environment-variables)
-    
+
     Open the .env file in a text editor (Notepad, TextEdit, VS Code) and edit frontend and backend URLs:
 
     ```ini
@@ -67,21 +66,16 @@ This is the recommended method for:
     DEVIANTART_REDIRECT_URI=http://localhost:4000/api/auth/deviantart/callback
     ```
 
-    Fill in your R2_ credentials which you can obtain from the Cloudflare dashboard:
-    ```ini
-    R2_ACCOUNT_ID=your_account_id
-    R2_ACCESS_KEY_ID=your_access_key
-    R2_SECRET_ACCESS_KEY=your_secret_key
-    R2_BUCKET_NAME=your_bucket_name
-    R2_PUBLIC_URL=[https://your-bucket.r2.dev](https://your-bucket.r2.dev)
-    ```
-
     Generate strong random strings for session management and encryption. You can use a password generator or run `openssl rand -hex 32` in a terminal.
 
     ```ini
     SESSION_SECRET=long_random_string_here
     ENCRYPTION_KEY=32_byte_hex_string_here
     ```
+
+    <Aside type="note">
+    **Storage is pre-configured!** The default `.env` includes MinIO settings that work out of the box. You don't need to configure any external storage for local development.
+    </Aside>
 
 3. Run The Container
 
@@ -90,13 +84,22 @@ This is the recommended method for:
     docker compose up -d
     ```
 
-    Docker will download the images (Frontend, Backend, Publisher, Postgres, Redis) and start them. This might take a few minutes the first time.
+    Docker will build the images locally (Frontend, Backend, Publisher) and start all services (MinIO, Postgres, Redis). This might take a few minutes the first time.
+
+    <Aside>
+    The `docker-compose.yml` builds images locally from source. If you prefer to use pre-built images from GitHub Container Registry, use `docker-compose.prod.yml` instead:
+    ```bash
+    docker compose -f docker-compose.prod.yml up -d
+    ```
+    </Aside>
 
 4. Access the app
 
     - Open your browser to http://localhost:3000
     - You should see the login screen
     - Click "Login with DeviantArt"
+
+    **Optional:** Access the MinIO Console at http://localhost:9001 (login: minioadmin / minioadmin) to view uploaded files.
 </Steps>
 
 
@@ -113,12 +116,27 @@ docker compose down
 To update to the latest version of Isekai Core:
 
 ```bash
-docker compose pull
+# If using local builds (default docker-compose.yml)
+git pull  # If you cloned the repo
+docker compose build --pull
 docker compose up -d
+
+# If using pre-built images (docker-compose.prod.yml)
+docker compose -f docker-compose.prod.yml pull
+docker compose -f docker-compose.prod.yml up -d
 ```
 
 
 
 ## Where is my data?
 
-By default, Docker stores the database data in a "volume" managed by Docker Desktop (except for the images stored in R2 object storage). Your data persists even if you restart your computer or stop the containers.
+By default, Docker stores data in "volumes" managed by Docker Desktop:
+- `postgres_data`: Database with all your drafts, schedules, and settings
+- `redis_data`: Session data and job queues
+- `minio_data`: Uploaded images and files
+
+Your data persists even if you restart your computer or stop the containers.
+
+## Using External Storage
+
+If you prefer to use an external S3-compatible storage provider (Cloudflare R2, AWS S3, etc.) instead of local MinIO, see the [Storage Setup guide](/requirements/storage-setup) for configuration instructions.

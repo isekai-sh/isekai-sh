@@ -4,21 +4,21 @@ description: Docker Compose file for deploying Isekai with persistent storage se
 ---
 import { Aside } from "@astrojs/starlight/components";
 
-This Docker Compose configuration runs **all services** including PostgreSQL and Redis as containers. This is the recommended setup for:
+This Docker Compose configuration runs **all services** including PostgreSQL, Redis, and MinIO as containers. This is the recommended setup for:
 
 - VPS deployments (Digital Ocean, Linode, Hetzner)
 - Local installations
 - One-click deployments (Coolify, Dokploy)
 
 <Aside type="tip">
-Data persists in Docker volumes (`postgres_data` and `redis_data`). Make sure to back up these volumes regularly.
+Data persists in Docker volumes (`postgres_data`, `redis_data`, and `minio_data`). Make sure to back up these volumes regularly.
 </Aside>
 
 ## When to Use This Configuration
 
 Use this configuration when:
 - You want a simple, all-in-one deployment
-- You don't have access to managed databases
+- You don't have access to managed databases or external storage
 - You want to minimize external dependencies
 - You're deploying on a single VPS or local machine
 
@@ -27,16 +27,21 @@ For production environments with high availability requirements, consider using 
 ## Configuration File
 
 ```yml
+# Default Docker Compose - Builds images locally
+# Usage: docker compose up -d
+#
+# This is the recommended way to run Isekai for self-hosting.
+# Includes MinIO for S3-compatible storage out of the box.
+
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: isekai-postgres
     environment:
       POSTGRES_USER: isekai
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-isekai}
+      POSTGRES_PASSWORD: isekai
       POSTGRES_DB: isekai
     ports:
-      - '${POSTGRES_PORT:-5433}:5432'
+      - '5433:5432'
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -45,15 +50,45 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - isekai-network
+
+  minio:
+    image: minio/minio:latest
+    container_name: isekai-minio
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'   # S3 API
+      - '9001:9001'   # Web Console
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ['CMD', 'mc', 'ready', 'local']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Creates the default bucket on startup
+  minio-init:
+    image: minio/mc:latest
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/isekai-uploads --ignore-existing;
+      mc anonymous set download myminio/isekai-uploads;
+      exit 0;
+      "
 
   redis:
     image: redis:7-alpine
-    container_name: isekai-redis
     command: redis-server --appendonly yes --appendfsync everysec
     ports:
-      - '${REDIS_PORT:-6379}:6379'
+      - '6379:6379'
     volumes:
       - redis_data:/data
     healthcheck:
@@ -62,45 +97,40 @@ services:
       timeout: 5s
       retries: 5
     restart: unless-stopped
-    networks:
-      - isekai-network
 
   backend:
-    image: ghcr.io/isekai-sh/isekai-backend:${IMAGE_TAG:-latest}
-    container_name: isekai-backend
+    build:
+      context: .
+      dockerfile: apps/isekai-backend/Dockerfile
     ports:
-      - '${BACKEND_PORT:-4000}:4000'
+      - '4000:4000'
     environment:
       # Database & Cache
-      DATABASE_URL: postgresql://${POSTGRES_USER:-isekai}:${POSTGRES_PASSWORD:-isekai}@postgres:5432/${POSTGRES_DB:-isekai}
+      DATABASE_URL: postgresql://isekai:isekai@postgres:5432/isekai
       REDIS_URL: redis://redis:6379
 
       # URLs
-      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      FRONTEND_URL: http://localhost:3000
       PORT: 4000
       NODE_ENV: production
 
       # Security (CHANGE THESE!)
       SESSION_SECRET: ${SESSION_SECRET}
       ENCRYPTION_KEY: ${ENCRYPTION_KEY}
-      COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
-      SESSION_MAX_AGE_DAYS: ${SESSION_MAX_AGE_DAYS:-7}
-      REFRESH_TOKEN_EXPIRY_DAYS: ${REFRESH_TOKEN_EXPIRY_DAYS:-90}
 
-      # DeviantArt OAuth (REQUIRED)
+      # DeviantArt OAuth (REQUIRED - Create your own app at deviantart.com/developers)
       DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
       DEVIANTART_CLIENT_SECRET: ${DEVIANTART_CLIENT_SECRET}
       DEVIANTART_REDIRECT_URI: ${DEVIANTART_REDIRECT_URI:-http://localhost:4000/api/auth/deviantart/callback}
 
-      # Cloudflare R2 Storage (REQUIRED)
-      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
-      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
-      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
-      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-isekai-uploads}
-      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
-
-      # Session Storage
-      SESSION_STORE: ${SESSION_STORE:-redis}
+      # S3-Compatible Storage (defaults to local MinIO)
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-isekai-uploads}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/isekai-uploads}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
     env_file:
       - .env
     depends_on:
@@ -108,24 +138,19 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - isekai-network
-    healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:4000/api/health']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 40s
 
   publisher:
-    image: ghcr.io/isekai-sh/isekai-publisher:${IMAGE_TAG:-latest}
-    container_name: isekai-publisher
+    build:
+      context: .
+      dockerfile: apps/isekai-publisher/Dockerfile
     ports:
-      - '${PUBLISHER_HEALTH_PORT:-8000}:8000'
+      - '8000:8000' # Health check endpoint
     environment:
       # Database & Cache
-      DATABASE_URL: postgresql://${POSTGRES_USER:-isekai}:${POSTGRES_PASSWORD:-isekai}@postgres:5432/${POSTGRES_DB:-isekai}
+      DATABASE_URL: postgresql://isekai:isekai@postgres:5432/isekai
       REDIS_URL: redis://redis:6379
       NODE_ENV: production
 
@@ -133,12 +158,14 @@ services:
       DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
       DEVIANTART_CLIENT_SECRET: ${DEVIANTART_CLIENT_SECRET}
 
-      # Cloudflare R2 Storage
-      R2_ACCOUNT_ID: ${R2_ACCOUNT_ID}
-      R2_ACCESS_KEY_ID: ${R2_ACCESS_KEY_ID}
-      R2_SECRET_ACCESS_KEY: ${R2_SECRET_ACCESS_KEY}
-      R2_BUCKET_NAME: ${R2_BUCKET_NAME:-isekai-uploads}
-      R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      # S3-Compatible Storage (defaults to local MinIO)
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://minio:9000}
+      S3_REGION: ${S3_REGION:-us-east-1}
+      S3_ACCESS_KEY_ID: ${S3_ACCESS_KEY_ID:-minioadmin}
+      S3_SECRET_ACCESS_KEY: ${S3_SECRET_ACCESS_KEY:-minioadmin}
+      S3_BUCKET_NAME: ${S3_BUCKET_NAME:-isekai-uploads}
+      S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/isekai-uploads}
+      S3_FORCE_PATH_STYLE: ${S3_FORCE_PATH_STYLE:-true}
 
       # Publisher Configuration
       PUBLISHER_CONCURRENCY: ${PUBLISHER_CONCURRENCY:-5}
@@ -181,9 +208,9 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
+      minio:
+        condition: service_healthy
     restart: unless-stopped
-    networks:
-      - isekai-network
     healthcheck:
       test: ['CMD-SHELL', 'wget --no-verbose --tries=1 --spider http://localhost:8000/health || exit 1']
       interval: 30s
@@ -192,38 +219,27 @@ services:
       start_period: 40s
 
   frontend:
-    image: ghcr.io/isekai-sh/isekai-frontend:${IMAGE_TAG:-latest}
-    container_name: isekai-frontend
+    build:
+      context: .
+      dockerfile: apps/isekai-frontend/Dockerfile
+      # No build args needed - config is injected at runtime
     ports:
-      - '${FRONTEND_PORT:-3000}:80'
+      - '3000:80'  # Map host 3000 to container 80 (nginx)
     environment:
-      # Runtime configuration (injected by entrypoint script)
-      # These values can be changed without rebuilding the image!
+      # Runtime environment variables (injected by entrypoint script)
       VITE_API_URL: ${VITE_API_URL:-http://localhost:4000/api}
       VITE_DEVIANTART_CLIENT_ID: ${DEVIANTART_CLIENT_ID}
-      VITE_R2_PUBLIC_URL: ${R2_PUBLIC_URL}
+      VITE_S3_PUBLIC_URL: ${S3_PUBLIC_URL:-http://localhost:9000/isekai-uploads}
     env_file:
       - .env
     depends_on:
       - backend
     restart: unless-stopped
-    networks:
-      - isekai-network
-    healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80/']
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-networks:
-  isekai-network:
-    driver: bridge
 
 volumes:
   postgres_data:
-    driver: local
   redis_data:
-    driver: local
+  minio_data:
 ```
 
 ## Service Breakdown
@@ -234,6 +250,18 @@ volumes:
 - **Volume**: `postgres_data` - Persists all user data, drafts, and schedules
 - **Health Check**: Verifies database is ready before starting dependent services
 
+### MinIO (`minio`)
+- **Image**: `minio/minio:latest`
+- **Purpose**: S3-compatible object storage for uploaded files
+- **Volume**: `minio_data` - Persists all uploaded images and files
+- **Ports**: 9000 (S3 API), 9001 (Web Console)
+- **Console**: Access at http://localhost:9001 (login: minioadmin / minioadmin)
+
+### MinIO Init (`minio-init`)
+- **Image**: `minio/mc:latest`
+- **Purpose**: One-time initialization to create the default bucket
+- **Behavior**: Creates `isekai-uploads` bucket and sets it to public download
+
 ### Redis (`redis`)
 - **Image**: `redis:7-alpine`
 - **Purpose**: Session storage, job queues, and caching
@@ -241,23 +269,27 @@ volumes:
 - **Persistence**: Configured with AOF (Append-Only File) for data durability
 
 ### Backend (`backend`)
-- **Image**: `ghcr.io/isekai-sh/isekai-backend`
+- **Image**: Built from `apps/isekai-backend/Dockerfile`
 - **Purpose**: API server, authentication, and job scheduling
-- **Dependencies**: Waits for PostgreSQL and Redis to be healthy
+- **Dependencies**: Waits for PostgreSQL, Redis, and MinIO to be healthy
 - **Port**: 4000 (configurable via `BACKEND_PORT`)
 
 ### Publisher (`publisher`)
-- **Image**: `ghcr.io/isekai-sh/isekai-publisher`
+- **Image**: Built from `apps/isekai-publisher/Dockerfile`
 - **Purpose**: Background worker for publishing to DeviantArt
-- **Dependencies**: Waits for PostgreSQL and Redis to be healthy
+- **Dependencies**: Waits for PostgreSQL, Redis, and MinIO to be healthy
 - **Port**: 8000 (health check endpoint)
 
 ### Frontend (`frontend`)
-- **Image**: `ghcr.io/isekai-sh/isekai-frontend`
+- **Image**: Built from `apps/isekai-frontend/Dockerfile`
 - **Purpose**: User interface (React SPA)
 - **Dependencies**: Backend API
 - **Port**: 80 internally, mapped to 3000 externally (configurable via `FRONTEND_PORT`)
 
 <Aside type="caution">
-**Backup Strategy:** The `postgres_data` and `redis_data` volumes contain all your persistent data. Make sure to implement a backup strategy for these volumes. See the [Maintenance guide](/operations/maintenance) for backup instructions.
+**Backup Strategy:** The `postgres_data`, `redis_data`, and `minio_data` volumes contain all your persistent data. Make sure to implement a backup strategy for these volumes. See the [Maintenance guide](/operations/maintenance) for backup instructions.
 </Aside>
+
+## Using External Storage
+
+If you prefer to use an external S3-compatible storage provider (Cloudflare R2, AWS S3, etc.) instead of the included MinIO, simply override the `S3_*` environment variables in your `.env` file. See the [Storage Setup guide](/requirements/storage-setup) for configuration details.

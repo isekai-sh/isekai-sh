@@ -9,7 +9,7 @@ Common issues and how to resolve them.
 
 **Symptom:** You try to upload an image in the Draft editor, but it immediately turns red or fails. Browser console shows a CORS error.
 
-**Fix:** You missed Step 2 in the [Cloudflare R2 Setup](/requirements/cloudflare-r2-setup/). You MUST configure the CORS policy on your bucket to allow your frontend domain to send PUT requests.
+**Fix:** You need to configure CORS on your storage bucket. See the [Storage Setup guide](/requirements/storage-setup) for provider-specific CORS configuration. Your bucket MUST allow your frontend domain to send PUT requests.
 
 ## DeviantArt Login Loop or "Invalid Redirect URI"
 

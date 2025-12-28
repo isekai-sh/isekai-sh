@@ -1,0 +1,260 @@
+---
+title: Storage Setup
+---
+import { Steps, Aside, Tabs, TabItem } from "@astrojs/starlight/components";
+
+Isekai Core uses S3-compatible object storage for storing files. This means you can use any S3-compatible storage provider, including:
+
+- **MinIO** (included by default for local development)
+- **Cloudflare R2** (zero egress fees, great for production)
+- **AWS S3** (the original)
+- **DigitalOcean Spaces**
+- **Backblaze B2**
+- Any other S3-compatible storage
+
+<Aside type="tip">
+**Quick Start:** If you're running locally with `docker compose up`, MinIO is included automatically and works out of the box with zero configuration. You only need to configure storage if you want to use a different provider.
+</Aside>
+
+## Default: MinIO (Local Development)
+
+When you run `docker compose up`, Isekai automatically starts a MinIO container that provides S3-compatible storage locally. No configuration is needed.
+
+- **MinIO Console**: http://localhost:9001
+- **Login**: minioadmin / minioadmin
+- **Bucket**: `isekai-uploads` (created automatically)
+
+The default environment variables are pre-configured:
+
+```ini
+S3_ENDPOINT=http://minio:9000
+S3_REGION=us-east-1
+S3_ACCESS_KEY_ID=minioadmin
+S3_SECRET_ACCESS_KEY=minioadmin
+S3_BUCKET_NAME=isekai-uploads
+S3_PUBLIC_URL=http://localhost:9000/isekai-uploads
+S3_FORCE_PATH_STYLE=true
+```
+
+## Production Storage Providers
+
+For production deployments, you'll want to use a cloud storage provider. Choose one based on your needs:
+
+<Tabs>
+<TabItem label="Cloudflare R2">
+
+**Best for:** Zero egress fees, global edge caching, cost-effective
+
+<Steps>
+
+1. **Create a Bucket**
+
+   - Log in to the Cloudflare Dashboard.
+   - Go to **R2** in the sidebar.
+   - Click **Create Bucket**.
+   - Name it (e.g., `isekai-uploads`).
+   - Click **Create Bucket**.
+
+2. **Configure CORS**
+
+   By default, browsers block web apps from uploading files directly to a different domain. You must explicitly allow your frontend domain to upload to your bucket.
+
+   - In your bucket view, go to **Settings**.
+   - Scroll down to **CORS Policy**.
+   - Click **Edit CORS Policy** and paste the following JSON:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": [
+         "https://isekai.yourdomain.com",
+         "http://localhost:3000"
+       ],
+       "AllowedMethods": ["PUT", "GET", "HEAD"],
+       "AllowedHeaders": ["*"],
+       "ExposeHeaders": ["ETag"],
+       "MaxAgeSeconds": 3000
+     }
+   ]
+   ```
+
+   - Replace `https://isekai.yourdomain.com` with your actual frontend URL.
+
+3. **Public Access**
+
+   - In your bucket **Settings**, scroll to **Public Access**.
+   - **R2.dev Subdomain**: You can enable this for a quick start (e.g., `https://pub-xyz.r2.dev`).
+   - **Custom Domain (Recommended)**: Connect a domain like `files.yourdomain.com` for better branding.
+   - Copy this URL. This becomes your `S3_PUBLIC_URL`.
+
+4. **API Credentials**
+
+   - Go back to the main **R2 Overview** page (not inside the bucket).
+   - Click **Manage R2 API Tokens** (on the right sidebar).
+   - Click **Create API Token**.
+   - **Permissions**: Select **Admin Read & Write**.
+   - **TTL**: Forever.
+   - Click **Create API Token**.
+
+5. **Configure Environment Variables**
+
+   ```ini
+   S3_ENDPOINT=https://<account-id>.r2.cloudflarestorage.com
+   S3_REGION=auto
+   S3_ACCESS_KEY_ID=<your-access-key-id>
+   S3_SECRET_ACCESS_KEY=<your-secret-access-key>
+   S3_BUCKET_NAME=isekai-uploads
+   S3_PUBLIC_URL=https://pub-xxx.r2.dev
+   S3_FORCE_PATH_STYLE=false
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="AWS S3">
+
+**Best for:** Enterprise environments, AWS ecosystem integration
+
+<Steps>
+
+1. **Create a Bucket**
+
+   - Go to the [S3 Console](https://s3.console.aws.amazon.com/).
+   - Click **Create bucket**.
+   - Choose a region close to your deployment.
+   - Name it (e.g., `isekai-uploads`).
+
+2. **Configure CORS**
+
+   - Go to your bucket → **Permissions** → **CORS configuration**.
+   - Add:
+
+   ```json
+   [
+     {
+       "AllowedOrigins": [
+         "https://isekai.yourdomain.com",
+         "http://localhost:3000"
+       ],
+       "AllowedMethods": ["PUT", "GET", "HEAD"],
+       "AllowedHeaders": ["*"],
+       "ExposeHeaders": ["ETag"],
+       "MaxAgeSeconds": 3000
+     }
+   ]
+   ```
+
+3. **Create IAM Credentials**
+
+   - Go to **IAM** → **Users** → **Create User**.
+   - Attach a policy with S3 permissions for your bucket.
+   - Create access keys and save them securely.
+
+4. **Configure Environment Variables**
+
+   ```ini
+   # Leave S3_ENDPOINT empty for AWS S3
+   S3_ENDPOINT=
+   S3_REGION=us-east-1
+   S3_ACCESS_KEY_ID=AKIA...
+   S3_SECRET_ACCESS_KEY=...
+   S3_BUCKET_NAME=isekai-uploads
+   S3_PUBLIC_URL=https://isekai-uploads.s3.us-east-1.amazonaws.com
+   S3_FORCE_PATH_STYLE=false
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="DigitalOcean Spaces">
+
+**Best for:** Simple setup, integrated CDN
+
+<Steps>
+
+1. **Create a Space**
+
+   - Go to **Spaces** in your DigitalOcean dashboard.
+   - Click **Create a Space**.
+   - Choose a region (e.g., `nyc3`).
+   - Name it (e.g., `isekai-uploads`).
+
+2. **Configure CORS**
+
+   - In your Space settings, add CORS origins for your frontend domain.
+
+3. **Create API Keys**
+
+   - Go to **API** → **Spaces Keys**.
+   - Generate a new key pair.
+
+4. **Configure Environment Variables**
+
+   ```ini
+   S3_ENDPOINT=https://nyc3.digitaloceanspaces.com
+   S3_REGION=nyc3
+   S3_ACCESS_KEY_ID=...
+   S3_SECRET_ACCESS_KEY=...
+   S3_BUCKET_NAME=isekai-uploads
+   S3_PUBLIC_URL=https://isekai-uploads.nyc3.cdn.digitaloceanspaces.com
+   S3_FORCE_PATH_STYLE=false
+   ```
+
+</Steps>
+
+</TabItem>
+<TabItem label="Backblaze B2">
+
+**Best for:** Low-cost storage, simple pricing
+
+<Steps>
+
+1. **Create a Bucket**
+
+   - Go to **Buckets** in your Backblaze dashboard.
+   - Click **Create a Bucket**.
+   - Name it and set it to **Public**.
+
+2. **Create Application Keys**
+
+   - Go to **App Keys**.
+   - Click **Add a New Application Key**.
+   - Give it read/write access to your bucket.
+
+3. **Configure Environment Variables**
+
+   ```ini
+   S3_ENDPOINT=https://s3.us-west-004.backblazeb2.com
+   S3_REGION=us-west-004
+   S3_ACCESS_KEY_ID=...
+   S3_SECRET_ACCESS_KEY=...
+   S3_BUCKET_NAME=isekai-uploads
+   S3_PUBLIC_URL=https://f004.backblazeb2.com/file/isekai-uploads
+   S3_FORCE_PATH_STYLE=false
+   ```
+
+</Steps>
+
+</TabItem>
+</Tabs>
+
+## Environment Variables Reference
+
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `S3_ENDPOINT` | S3 API endpoint URL. Leave empty for AWS S3. | `https://account.r2.cloudflarestorage.com` |
+| `S3_REGION` | Bucket region | `us-east-1`, `auto`, `nyc3` |
+| `S3_ACCESS_KEY_ID` | Access key ID | `AKIA...` |
+| `S3_SECRET_ACCESS_KEY` | Secret access key | (keep secret) |
+| `S3_BUCKET_NAME` | Bucket name | `isekai-uploads` |
+| `S3_PUBLIC_URL` | Public URL for accessing files | `https://files.yourdomain.com` |
+| `S3_FORCE_PATH_STYLE` | Use path-style URLs (see below) | `true` or `false` |
+
+<Aside type="note">
+**About `S3_FORCE_PATH_STYLE`:**
+- Set to `true` for **MinIO** and self-hosted S3-compatible storage
+- Set to `false` for **cloud providers** (AWS S3, Cloudflare R2, DigitalOcean Spaces, Backblaze B2)
+
+Path-style: `http://endpoint/bucket/key` vs Virtual-hosted: `http://bucket.endpoint/key`
+</Aside>
+

@@ -31,7 +31,7 @@ The Backend checks if the Draft has an image, a title, and the user has a valid 
 
 4. **Refresh**: Checks if the token is expired. If yes, calls DeviantArt OAuth endpoint to get a new one and updates the DB.
 
-5. **Download**: Streams the image file from Cloudflare R2 into memory.
+5. **Download**: Streams the image file from S3 storage into memory.
 
 6. **Upload**: Sends the file stream to DeviantArt's `stash/submit` endpoint.
 
@@ -60,7 +60,7 @@ We have a fail-safe mechanism located in `apps/isekai-backend/src/jobs/stuck-job
   - If the job is missing in Redis but stuck in DB → Mark Draft as `FAILED` (so the user can retry).
   - If the job is stalled → Re-queue it.
 
-## 3. Direct-to-R2 Uploads
+## 3. Direct-to-S3 Uploads
 
 To avoid bottlenecking the Node.js server with large file uploads, we use a signed URL approach.
 
@@ -68,11 +68,11 @@ To avoid bottlenecking the Node.js server with large file uploads, we use a sign
 
 1. **Request**: Frontend requests an upload slot via `POST /api/uploads/sign`.
 
-2. **Sign**: Backend uses the AWS SDK (compatible with R2) to generate a PUT Presigned URL valid for 5 minutes.
+2. **Sign**: Backend uses the AWS SDK (S3-compatible) to generate a PUT Presigned URL valid for 5 minutes.
 
-3. **Upload**: Frontend uploads the file directly to Cloudflare R2 using `XMLHttpRequest` (to track progress).
+3. **Upload**: Frontend uploads the file directly to S3 storage using `XMLHttpRequest` (to track progress).
 
-4. **Confirm**: Once uploaded, Frontend sends the R2 Key back to the Backend to attach it to the Draft.
+4. **Confirm**: Once uploaded, Frontend sends the S3 Key back to the Backend to attach it to the Draft.
 
 </Steps>
 

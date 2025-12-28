@@ -20,7 +20,7 @@ We use a monorepo structure to share code between the API and the Worker.
 - apps/
   - isekai-frontend/ React / Vite. The user interface.
   - isekai-backend/ Express API. Handles auth, database access, and job scheduling.
-  - isekai-publisher/ Background Worker. Processes queues (uploading to DA, cleaning R2).
+  - isekai-publisher/ Background Worker. Processes queues (uploading to DA, S3 cleanup).
 - packages/
   - shared/ Shared Library. Contains Prisma schema, database client, and shared types.
 
@@ -58,7 +58,7 @@ We use a monorepo structure to share code between the API and the Worker.
    ```
 
    <Aside type="note">
-   You must fill in the `DEVIANTART_CLIENT_ID` and R2 credentials in `apps/isekai-backend/.env` for the app to function fully.
+   You must fill in the `DEVIANTART_CLIENT_ID` in `apps/isekai-backend/.env` for the app to function fully. S3 storage defaults to local MinIO for development.
    </Aside>
 
 4. **Database Setup**

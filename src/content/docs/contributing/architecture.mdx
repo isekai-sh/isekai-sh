@@ -40,7 +40,7 @@ Isekai Core is a distributed system built on the Producer-Consumer pattern. This
   - **Session Store**: Holds user login sessions.
   - **Job Queues**: Persists BullMQ job data.
   - **Caching**: Caches expensive API calls (like DeviantArt Gallery folders) to avoid hitting rate limits.
-- **Cloudflare R2**: Object storage for artwork. Files are uploaded directly from the browser (via Presigned URLs) to R2 to save Backend bandwidth.
+- **S3 Storage**: Object storage for artwork (MinIO, Cloudflare R2, AWS S3, etc.). Files are uploaded directly from the browser (via Presigned URLs) to save Backend bandwidth.
 
 ## The Queue System
 
@@ -50,7 +50,7 @@ We use BullMQ to manage background tasks. There are three primary queues:
 |------------|----------|----------|----------|-------------|
 | `deviation-publisher` | High | Backend | Publisher | Handles the actual posting of artwork to DeviantArt. |
 | `token-maintenance` | Critical | Backend | Publisher | Refreshes OAuth tokens 1 hour before expiry. If this fails, publishing fails. |
-| `r2-cleanup` | Low | Backend | Publisher | Garbage collection for R2. Deletes images associated with deleted drafts. |
+| `r2-cleanup` | Low | Backend | Publisher | Garbage collection for S3 storage. Deletes images associated with deleted drafts. |
 
 ## Security Architecture
 

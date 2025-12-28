@@ -61,13 +61,13 @@ In most cases, the application will automatically run necessary database migrati
 Your data lives in two places:
 
 - **PostgreSQL Database**: Contains all user data, draft text, schedules, and automation rules.
-- **Cloudflare R2**: Contains the actual image files.
+- **S3 Storage**: Contains the actual image files (MinIO, Cloudflare R2, AWS S3, etc.).
 
 ### What to Backup
 
 You primarily need to backup the PostgreSQL Database and your `.env` file.
 
-- **R2 Buckets**: Cloudflare is highly durable, but you can sync your bucket to another provider if paranoid.
+- **S3 Storage**: If using local MinIO, backup the `minio_data` Docker volume. Cloud providers (R2, S3) are highly durable.
 - **Redis**: Strictly cache and temporary job queues. No backup needed.
 
 ### Automated Postgres Backups (Docker)
