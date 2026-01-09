@@ -1,47 +1,701 @@
-/* Custom styles for Isekai Documentation */
+/* Isekai Documentation - Matching isekai-run-app design system */
+
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap');
 
 /* Force dark theme */
 :root {
-  color-scheme: dark;
+	color-scheme: dark;
 }
 
-/* Make logo 50% of current height */
-.site-title img {
-  height: 70%;
-  max-height: 2rem;
-}
-
-/* Override default accent color to #19E094 */
+/* Isekai Run App Design System - Exact Color Variables */
 :root {
-  --sl-color-accent-low: #19e09420;
-  --sl-color-accent: #19e094;
-  --sl-color-accent-high: #19e094;
+	/* Base colors from app */
+	--background: 150 10% 9%;
+	--foreground: 0 0% 95%;
+	--card: 150 8% 12%;
+	--card-foreground: 0 0% 95%;
+	--primary: 160 100% 48%;
+	--primary-foreground: 150 10% 9%;
+	--muted: 150 8% 18%;
+	--muted-foreground: 150 5% 55%;
+	--border: 150 8% 20%;
+	--sidebar-background: 150 10% 9%;
+
+	/* Starlight color mappings */
+	--sl-color-bg: hsl(var(--background));
+	--sl-color-bg-nav: hsl(var(--background));
+	--sl-color-bg-sidebar: hsl(var(--sidebar-background));
+	--sl-color-bg-inline-code: hsl(var(--muted));
+
+	/* Text colors */
+	--sl-color-text: hsl(var(--foreground));
+	--sl-color-text-accent: hsl(var(--primary));
+	--sl-color-gray-1: hsl(var(--foreground));
+	--sl-color-gray-2: hsl(150 5% 65%);
+	--sl-color-gray-3: hsl(var(--muted-foreground));
+	--sl-color-gray-4: hsl(150 8% 30%);
+	--sl-color-gray-5: hsl(var(--border));
+	--sl-color-gray-6: hsl(var(--muted));
+
+	/* Accent/Primary color */
+	--sl-color-accent-low: hsl(var(--primary) / 0.1);
+	--sl-color-accent: hsl(var(--primary));
+	--sl-color-accent-high: hsl(var(--primary));
+
+	/* Border colors */
+	--sl-color-hairline: hsl(var(--border) / 0.5);
+	--sl-color-hairline-light: hsl(var(--border));
+	--sl-color-hairline-shade: hsl(150 8% 15%);
+
+	/* Typography */
+	--sl-font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+	--sl-font-headings: 'Geist Mono', monospace;
+	--sl-font-mono: 'Geist Mono', monospace;
+
+	/* Border radius */
+	--radius: 0.5rem;
 }
 
-:root[data-theme='dark'] {
-  --sl-color-accent-low: #19e09420;
-  --sl-color-accent: #19e094;
-  --sl-color-accent-high: #19e094;
+/* Typography overrides */
+body {
+	font-family: var(--sl-font);
+	background: var(--sl-color-bg) !important;
+	color: var(--sl-color-text);
 }
 
-/* Remove all rounded corners */
-* {
-  border-radius: 0 !important;
+/* Fix background color consistency everywhere */
+html,
+body,
+#root,
+main,
+.main-frame,
+.content-panel,
+.sl-container,
+article,
+.page {
+	background: var(--sl-color-bg) !important;
 }
 
-/* Ensure buttons, cards, and inputs have no rounded corners */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+.sl-markdown-content :is(h1, h2, h3, h4, h5, h6) {
+	font-family: var(--sl-font-headings) !important;
+	font-weight: 700;
+	letter-spacing: -0.02em;
+	color: var(--sl-color-gray-1);
+}
+
+/* Buttons and links use monospace */
 button,
+.sl-link-button,
+a.button {
+	font-family: var(--sl-font-headings) !important;
+	font-weight: 700 !important;
+}
+
+/* Primary button styling */
+.sl-link-button:not(.secondary) {
+	background: hsl(var(--primary));
+	color: hsl(var(--primary-foreground));
+	border: 1px solid hsl(var(--primary));
+	transition: all 0.2s ease;
+	border-radius: var(--radius);
+}
+
+.sl-link-button:not(.secondary):hover {
+	background: hsl(var(--primary) / 0.9);
+}
+
+/* Card styling - gradient bg to pop */
+.sl-card,
 .card,
-.sl-badge,
-input,
-textarea,
-select,
-pre,
-code,
-.expressive-code,
+[data-card],
+article .card,
+.sl-markdown-content .card {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
+	border: 1px solid hsl(var(--primary) / 0.2) !important;
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+	border-radius: var(--radius);
+	transition: all 0.3s ease;
+}
+
+.sl-card:hover,
+.card:hover,
+[data-card]:hover {
+	border-color: hsl(var(--primary) / 0.3) !important;
+}
+
+/* Add gradient glow orb to cards */
+.sl-card::before,
+.card::before,
+[data-card]::before {
+	content: '';
+	position: absolute;
+	top: -2rem;
+	right: -2rem;
+	width: 8rem;
+	height: 8rem;
+	background: hsl(var(--primary) / 0.1);
+	border-radius: 50%;
+	filter: blur(3rem);
+	pointer-events: none;
+	transition: all 0.3s ease;
+}
+
+.sl-card:hover::before,
+.card:hover::before,
+[data-card]:hover::before {
+	background: hsl(var(--primary) / 0.15);
+}
+
+/* Force ALL icons to monochrome - NO backgrounds, NO borders */
+.icon,
+svg.icon,
+.sl-card .icon,
+.card .icon,
+.card svg,
+.sl-card svg,
+[astro-icon],
+.sl-icon,
+[data-card] svg,
+[data-card] .icon {
+	color: hsl(var(--primary)) !important;
+	fill: hsl(var(--primary)) !important;
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+}
+
+/* Aside/Note/Alert boxes - gradient bg to pop */
 aside,
-.tablist,
-.tab,
-img {
-  border-radius: 0 !important;
+.starlight-aside,
+.sl-markdown-content aside {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
+	border: 1px solid hsl(var(--primary) / 0.2) !important;
+	border-left: 2px solid hsl(var(--primary) / 0.5) !important;
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+	border-radius: var(--radius);
+	padding: 1rem 1.5rem;
+}
+
+/* Add gradient glow orb */
+aside::before,
+.starlight-aside::before {
+	content: '';
+	position: absolute;
+	top: -2rem;
+	right: -2rem;
+	width: 8rem;
+	height: 8rem;
+	background: hsl(var(--primary) / 0.15);
+	border-radius: 50%;
+	filter: blur(3rem);
+	pointer-events: none;
+}
+
+/* Remove colored aside variants - make everything use gradient */
+aside[data-type],
+.starlight-aside--note,
+.starlight-aside--tip,
+.starlight-aside--caution,
+.starlight-aside--danger {
+	background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
+	border: 1px solid hsl(var(--primary) / 0.2) !important;
+	border-left: 2px solid hsl(var(--primary) / 0.5) !important;
+}
+
+/* Aside icons - primary color to pop */
+aside .icon,
+aside svg,
+.starlight-aside .icon,
+.starlight-aside svg,
+.starlight-aside__icon,
+.starlight-aside__icon svg {
+	color: hsl(var(--primary)) !important;
+	fill: hsl(var(--primary)) !important;
+	background: transparent !important;
+	border: none !important;
+	padding: 0 !important;
+}
+
+/* Aside titles - white */
+aside .starlight-aside__title,
+.starlight-aside__title {
+	color: hsl(var(--foreground)) !important;
+	font-family: var(--sl-font-headings);
+	font-weight: 600;
+}
+
+/* Aside content text - muted */
+aside p,
+.starlight-aside p,
+.starlight-aside__content {
+	color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Code blocks - isekai.run style */
+pre,
+code {
+	font-family: var(--sl-font-mono) !important;
+}
+
+/* Expressive code frame - darker background with proper styling */
+.expressive-code,
+figure.expressive-code,
+.expressive-code *,
+.expressive-code::before,
+.expressive-code::after {
+	border: none !important;
+	outline: none !important;
+}
+
+.expressive-code,
+figure.expressive-code {
+	margin: 1.5rem 0 !important;
+	background: hsl(150 10% 6%) !important;
+	border-radius: 0.75rem !important;
+	overflow: hidden;
+}
+
+.expressive-code .frame {
+	background: transparent !important;
+}
+
+/* Code block header with traffic lights */
+.expressive-code .header,
+.expressive-code [data-rehype-pretty-code-title] {
+	background: hsl(150 10% 8%) !important;
+	padding: 0.5rem 0.75rem !important;
+	display: flex !important;
+	align-items: center !important;
+	gap: 0.5rem !important;
+}
+
+/* macOS traffic lights - monochrome, smaller */
+.expressive-code .header::before {
+	content: '' !important;
+	display: flex !important;
+	gap: 0.375rem !important;
+	align-items: center !important;
+	background-image: radial-gradient(circle, hsl(var(--muted-foreground)) 0%, hsl(var(--muted-foreground)) 40%, transparent 40%),
+	                  radial-gradient(circle, hsl(var(--muted-foreground)) 0%, hsl(var(--muted-foreground)) 40%, transparent 40%),
+	                  radial-gradient(circle, hsl(var(--muted-foreground)) 0%, hsl(var(--muted-foreground)) 40%, transparent 40%) !important;
+	background-size: 0.5rem 0.5rem !important;
+	background-position: left center, 0.625rem center, 1.25rem center !important;
+	background-repeat: no-repeat !important;
+	width: 2rem !important;
+	height: 0.5rem !important;
+	flex-shrink: 0 !important;
+}
+
+/* Code content */
+.expressive-code pre {
+	background: transparent !important;
+	border: none !important;
+	margin: 0 !important;
+	padding: 1.25rem !important;
+	border-radius: 0 !important;
+}
+
+/* Regular pre without expressive-code */
+pre:not(.expressive-code pre) {
+	background: hsl(150 10% 6%) !important;
+	border: 1px solid hsl(var(--border) / 0.5) !important;
+	border-radius: 0.75rem !important;
+	padding: 1.5rem !important;
+	margin: 1.5rem 0 !important;
+}
+
+/* Inline code - primary color accent */
+:not(pre) > code {
+	background: hsl(var(--primary) / 0.1);
+	color: hsl(var(--primary));
+	border: 1px solid hsl(var(--primary) / 0.2);
+	padding: 0.2em 0.4em;
+	font-size: 0.875em;
+	border-radius: calc(var(--radius) - 2px);
+}
+
+/* Content body links - primary color */
+article a,
+.sl-markdown-content a,
+main a {
+	color: hsl(var(--primary));
+	text-decoration: none !important;
+	transition: color 0.2s ease;
+}
+
+article a:hover,
+.sl-markdown-content a:hover,
+main a:hover {
+	text-decoration: none !important;
+	color: hsl(var(--primary));
+	opacity: 0.8;
+}
+
+/* Other links (nav, etc) - muted */
+a {
+	color: hsl(var(--muted-foreground));
+	text-decoration: none !important;
+	transition: color 0.2s ease;
+}
+
+a:hover {
+	text-decoration: none !important;
+	color: hsl(var(--foreground));
+}
+
+/* Active/current links - white */
+a[aria-current="page"] {
+	color: hsl(var(--foreground));
+	font-weight: 600;
+}
+
+/* Tables */
+table {
+	border: 1px solid hsl(var(--border) / 0.5);
+	border-radius: var(--radius);
+	overflow: hidden;
+}
+
+th {
+	background: hsl(var(--card));
+	border-bottom: 1px solid hsl(var(--primary) / 0.3);
+	font-family: var(--sl-font-headings);
+	font-weight: 700;
+}
+
+td {
+	border: 1px solid hsl(var(--border) / 0.3);
+}
+
+tr:hover {
+	background: hsl(var(--card) / 0.5);
+}
+
+/* Badge styling */
+.sl-badge {
+	background: hsl(var(--primary) / 0.1);
+	color: hsl(var(--primary));
+	border: 1px solid hsl(var(--primary) / 0.2);
+	font-family: var(--sl-font-headings);
+	font-weight: 600;
+	font-size: 0.75rem;
+	padding: 0.25em 0.75em;
+	border-radius: calc(var(--radius) - 2px);
+}
+
+/* Search input - match design system */
+.search-input,
+input[type="search"],
+.site-search input,
+[data-search-input],
+.pagefind-ui__search-input {
+	background: hsl(var(--card)) !important;
+	border: 1px solid hsl(var(--border) / 0.5) !important;
+	color: hsl(var(--foreground)) !important;
+	border-radius: var(--radius) !important;
+	padding: 0.625rem 1rem !important;
+	font-family: var(--sl-font) !important;
+	font-size: 0.875rem !important;
+	transition: all 0.2s ease !important;
+}
+
+.search-input:focus,
+input[type="search"]:focus,
+.site-search input:focus,
+[data-search-input]:focus,
+.pagefind-ui__search-input:focus {
+	border-color: hsl(var(--primary) / 0.5) !important;
+	outline: none !important;
+}
+
+.search-input::placeholder,
+input[type="search"]::placeholder,
+.pagefind-ui__search-input::placeholder {
+	color: hsl(var(--muted-foreground)) !important;
+}
+
+/* Search modal/dialog */
+.pagefind-ui,
+[data-pagefind-ui] {
+	--pagefind-ui-background: hsl(var(--background));
+	--pagefind-ui-border: hsl(var(--border));
+	--pagefind-ui-primary: hsl(var(--primary));
+	--pagefind-ui-text: hsl(var(--foreground));
+	--pagefind-ui-font: var(--sl-font);
+}
+
+/* Search results */
+.pagefind-ui__result {
+	background: hsl(var(--card)) !important;
+	border: 1px solid hsl(var(--border) / 0.3) !important;
+	border-radius: var(--radius) !important;
+	padding: 1rem !important;
+	margin-bottom: 0.75rem !important;
+}
+
+.pagefind-ui__result:hover {
+	border-color: hsl(var(--primary) / 0.3) !important;
+}
+
+.pagefind-ui__result-link {
+	color: hsl(var(--primary)) !important;
+	text-decoration: none !important;
+}
+
+/* Logo sizing */
+.site-title img {
+	height: 70%;
+	max-height: 2rem;
+}
+
+/* Header - match background exactly */
+header {
+	background: var(--sl-color-bg) !important;
+	border-bottom: 1px solid hsl(var(--border) / 0.3) !important;
+}
+
+/* Navbar icons - white */
+header svg,
+header .icon,
+header [astro-icon],
+header button svg,
+header a svg,
+.social-icons svg,
+header .social-icons a svg {
+	color: hsl(var(--foreground)) !important;
+	fill: hsl(var(--foreground)) !important;
+}
+
+header svg path,
+header button svg path,
+header a svg path {
+	fill: hsl(var(--foreground)) !important;
+	stroke: hsl(var(--foreground)) !important;
+}
+
+/* Search button in navbar */
+header button[data-open-modal],
+.site-search button,
+button[aria-label*="Search" i] {
+	background: hsl(var(--card)) !important;
+	border: 1px solid hsl(var(--border) / 0.5) !important;
+	color: hsl(var(--foreground)) !important;
+	border-radius: var(--radius) !important;
+	transition: all 0.2s ease !important;
+}
+
+header button[data-open-modal]:hover,
+.site-search button:hover,
+button[aria-label*="Search" i]:hover {
+	border-color: hsl(var(--primary) / 0.5) !important;
+}
+
+/* Left sidebar - main navigation */
+.sidebar {
+	background: var(--sl-color-bg) !important;
+	border-right: none !important;
+}
+
+/* Right sidebar - table of contents - no color */
+.right-sidebar,
+aside.right-sidebar,
+.right-sidebar-container,
+.right-sidebar-panel,
+[data-right-sidebar] {
+	background: transparent !important;
+	border-left: none !important;
+	border: none !important;
+}
+
+/* Right sidebar links - muted */
+.right-sidebar a,
+.right-sidebar-container a {
+	color: hsl(var(--muted-foreground)) !important;
+}
+
+.right-sidebar a:hover,
+.right-sidebar-container a:hover {
+	color: hsl(var(--foreground)) !important;
+}
+
+/* Remove all sidebar borders */
+.sidebar-content,
+.sidebar-pane {
+	background: var(--sl-color-bg) !important;
+	border: none !important;
+	border-right: none !important;
+	border-left: none !important;
+}
+
+/* Sidebar links - muted, not distracting */
+.sidebar-content a,
+.sidebar a,
+nav.sidebar a {
+	color: hsl(var(--muted-foreground)) !important;
+	transition: color 0.2s ease;
+}
+
+.sidebar-content a:hover,
+.sidebar a:hover,
+nav.sidebar a:hover {
+	color: hsl(var(--foreground)) !important;
+}
+
+/* Active navigation items - white */
+.sidebar-content a[aria-current="page"],
+.sidebar a[aria-current="page"] {
+	background: transparent !important;
+	color: hsl(var(--foreground)) !important;
+	border-left: none !important;
+	font-weight: 600;
+}
+
+/* Sidebar chevron icons - white */
+.sidebar svg,
+.sidebar .icon,
+.sidebar [astro-icon],
+nav.sidebar svg,
+.sidebar-content svg,
+.sidebar details summary svg,
+.sidebar-content details summary svg {
+	color: hsl(var(--foreground)) !important;
+	fill: hsl(var(--foreground)) !important;
+}
+
+.sidebar svg path,
+.sidebar details summary svg path,
+.sidebar-content svg path {
+	fill: hsl(var(--foreground)) !important;
+	stroke: hsl(var(--foreground)) !important;
+}
+
+/* Custom scrollbar with primary color */
+* {
+	scrollbar-width: thin;
+	scrollbar-color: hsl(160 100% 48% / 0.3) transparent;
+}
+
+*::-webkit-scrollbar {
+	width: 8px;
+	height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+	background-color: hsl(160 100% 48% / 0.3);
+	border-radius: 4px;
+	border: 2px solid transparent;
+	background-clip: content-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+	background-color: hsl(160 100% 48% / 0.5);
+}
+
+/* LinkCard styling - gradient to pop */
+.sl-link-card,
+[data-card-grid] a {
+	position: relative;
+	overflow: hidden;
+	background: linear-gradient(135deg, hsl(var(--card)) 0%, hsl(var(--background)) 100%) !important;
+	border: 1px solid hsl(var(--primary) / 0.2) !important;
+	backdrop-filter: blur(8px) !important;
+	-webkit-backdrop-filter: blur(8px) !important;
+	border-radius: var(--radius) !important;
+	transition: all 0.3s ease;
+}
+
+.sl-link-card:hover,
+[data-card-grid] a:hover {
+	border-color: hsl(var(--primary) / 0.3) !important;
+}
+
+/* Add gradient glow orb to link cards */
+.sl-link-card::before,
+[data-card-grid] a::before {
+	content: '';
+	position: absolute;
+	top: -2rem;
+	right: -2rem;
+	width: 8rem;
+	height: 8rem;
+	background: hsl(var(--primary) / 0.1);
+	border-radius: 50%;
+	filter: blur(3rem);
+	pointer-events: none;
+	transition: all 0.3s ease;
+}
+
+.sl-link-card:hover::before,
+[data-card-grid] a:hover::before {
+	background: hsl(var(--primary) / 0.15);
+}
+
+/* Card icons - primary color to pop */
+.sl-card .icon,
+.card .icon,
+[data-card] .icon,
+.sl-card svg,
+.card svg,
+[data-card] svg {
+	color: hsl(var(--primary)) !important;
+	fill: hsl(var(--primary)) !important;
+}
+
+/* LinkCard icons - primary color */
+.sl-link-card .icon,
+[data-card-grid] a .icon,
+.sl-link-card svg,
+[data-card-grid] a svg {
+	color: hsl(var(--primary)) !important;
+	fill: hsl(var(--primary)) !important;
+}
+
+/* Force all SVG paths to use primary color */
+svg path,
+.icon path,
+[astro-icon] path {
+	fill: hsl(var(--primary)) !important;
+	stroke: hsl(var(--primary)) !important;
+}
+
+/* Remove any colored backgrounds or accents */
+.card-grid svg,
+.link-card svg,
+[data-card] svg {
+	color: hsl(var(--primary)) !important;
+	fill: hsl(var(--primary)) !important;
+}
+
+/* CardGrid styling */
+[data-card-grid] {
+	gap: 1rem;
+}
+
+/* Glow effect utility */
+.glow {
+	text-shadow: 0 0 20px hsl(160 100% 48% / 0.5);
+}
+
+/* Text gradient utility */
+.text-gradient {
+	background: linear-gradient(to right, hsl(160 100% 48%), #34d399);
+	-webkit-background-clip: text;
+	background-clip: text;
+	-webkit-text-fill-color: transparent;
 }

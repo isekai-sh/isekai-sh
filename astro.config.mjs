@@ -36,8 +36,16 @@ export default defineConfig({
         replacesTitle: true,
       },
       customCss: ["./src/styles/custom.css"],
+      expressiveCode: {
+        themes: ["one-dark-pro"],
+        styleOverrides: {
+          borderRadius: "0.75rem",
+          borderWidth: "0",
+        },
+      },
       components: {
         ThemeSelect: "./src/components/ThemeSelect.astro",
+        Sidebar: "./src/components/Sidebar.astro",
       },
       editLink: {
         baseUrl: "https://github.com/isekai-sh/isekai-sh/edit/main/",
