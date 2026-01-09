@@ -1,101 +1,633 @@
 ---
-title: Image Processing Nodes
-description: Upload and compress images with Isekai ComfyUI nodes
+title: Image Manipulation Nodes
+description: Professional-grade image effects, transforms, blending, and cloud upload
 ---
-import { Aside } from "@astrojs/starlight/components";
+import { Aside, Tabs, TabItem } from "@astrojs/starlight/components";
 
-## Isekai Upload
+Isekai provides 22 professional-grade image manipulation nodes inspired by Blender's compositing system, plus cloud upload capabilities. All image nodes use only PIL/Pillow for zero additional dependencies.
 
-Upload generated images directly to the Isekai platform with built-in compression.
+## Quick Navigation
 
-**Location:** Isekai > Isekai Upload
-
-### Inputs
-
-- `image` (IMAGE, required): Image tensor from any image-producing node
-- `title` (STRING, required): Title for your artwork (max 200 characters)
-- `api_key` (STRING, optional): Your Isekai API key
-  - Leave empty to use `ISEKAI_API_KEY` environment variable (recommended)
-- `tags` (STRING, optional): Comma-separated tags
-- `format` (DROPDOWN): JPEG or PNG (default: JPEG)
-- `quality` (INT slider): Compression quality 1-100 (default: 90)
-
-### Outputs
-
-- `IMAGE`: Pass-through of input image (enables preview)
-
-### Compression Benefits
-
-- **JPEG quality 90**: ~80-90% size reduction with excellent quality
-- **JPEG quality 75-85**: ~85-92% size reduction, very good quality
-- **PNG**: Lossless, ~20-30% compression only
+- [Blend Nodes](#blend-nodes) - Color adjustment, blending, levels, color grading (5 nodes)
+- [Effects Nodes](#effects-nodes) - Blur, grain, vignette, filters, distortion (11 nodes)
+- [Transform Nodes](#transform-nodes) - Rotate, scale, crop, flip, translate (6 nodes)
+- [Upload & Save](#upload-and-save) - Cloud upload and local compression (2 nodes)
 
 <Aside type="tip">
-JPEG quality 90 (default) provides the best balance between file size and image quality for most use cases.
+All image nodes are **chainable** - they accept IMAGE input and return IMAGE output. Connect multiple nodes together to build complex image processing pipelines.
 </Aside>
-
-### Example Workflow
-
-```
-VAE Decode → Isekai Upload → Preview Image
-             ↓ title: "Epic Fantasy Warrior"
-             ↓ tags: "fantasy, warrior, armor"
-             ↓ format: JPEG
-             ↓ quality: 90
-```
-
-### After Upload
-
-- Images appear in your Isekai Core instance with status "review"
-- Approve or reject in the web interface
-- Approved images move to Drafts for scheduling
 
 ---
 
-## Isekai Compress and Save
+## Blend Nodes
 
-Compress and save images to disk with full control over format, quality, and filenames.
+### Blend Images
 
-**Location:** Isekai > Isekai Compress and Save
+Mix two images with professional blend modes.
 
-### Inputs
+**Location:** Isekai/Image/Blend
 
-- `images` (IMAGE, required): Image tensor from any image-producing node
-- `filename` (STRING, required): Base filename (default: "isekai")
-- `format` (DROPDOWN): JPEG, PNG, or WEBP (default: JPEG)
-- `quality` (INT slider): Compression quality 1-100 (default: 90)
+**Inputs:**
+- `image_a` (IMAGE): Base image
+- `image_b` (IMAGE): Blend image (auto-resized to match base)
+- `blend_mode` (COMBO): Normal, Multiply, Screen, Add, Subtract, Difference, Lighten, Darken
+- `opacity` (FLOAT, 0.0-1.0): Blend strength (default: 0.5)
 
-### Outputs
+**Outputs:**
+- `image` (IMAGE): Blended result
 
-None (terminal node - saves to disk). Images saved to `ComfyUI/output/` folder.
+**Example Use Cases:**
+- Add texture overlays (Multiply mode)
+- Create light effects (Screen mode)
+- Combine render passes (Add mode)
 
-### Format Options
+---
 
-- **PNG**: Lossless compression, supports transparency
-- **JPEG**: Lossy compression, smaller files, no transparency
-- **WEBP**: Modern format, excellent compression, best of both worlds
+### Color Adjust
 
-### Filename Pattern
+Adjust brightness, contrast, saturation, and sharpness.
 
+**Location:** Isekai/Image/Blend
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `brightness` (FLOAT, 0.0-2.0): Brightness multiplier (default: 1.0)
+- `contrast` (FLOAT, 0.0-2.0): Contrast multiplier (default: 1.0)
+- `saturation` (FLOAT, 0.0-2.0): Color saturation (default: 1.0)
+- `sharpness` (FLOAT, 0.0-2.0): Sharpness multiplier (default: 1.0)
+
+**Outputs:**
+- `image` (IMAGE): Adjusted image
+
+**Tips:**
+- Values below 1.0 decrease the effect
+- Values above 1.0 increase the effect
+- Stack multiple adjustments by chaining nodes
+
+---
+
+### Color Ramp
+
+Apply gradient mapping for color grading.
+
+**Location:** Isekai/Image/Blend
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `color_start` (STRING): Hex color for shadows (default: "#000000")
+- `color_end` (STRING): Hex color for highlights (default: "#FFFFFF")
+- `intensity` (FLOAT, 0.0-1.0): Effect strength (default: 1.0)
+
+**Outputs:**
+- `image` (IMAGE): Color-graded result
+
+**Use Cases:**
+- Create cinematic color grades
+- Apply temperature shifts (warm/cool)
+- Stylistic color treatments
+
+<Aside>
+Use hex colors like `#FF5500` (orange shadows) to `#00AAFF` (cyan highlights) for creative grading.
+</Aside>
+
+---
+
+### Levels
+
+Adjust black point, white point, and midtones.
+
+**Location:** Isekai/Image/Blend
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `black_point` (INT, 0-255): Input black level (default: 0)
+- `white_point` (INT, 0-255): Input white level (default: 255)
+- `midtones` (FLOAT, 0.1-10.0): Gamma adjustment (default: 1.0)
+
+**Outputs:**
+- `image` (IMAGE): Level-adjusted image
+
+**Tips:**
+- Increase `black_point` to crush blacks
+- Decrease `white_point` to bring down highlights
+- Adjust `midtones` > 1.0 to brighten, < 1.0 to darken
+
+---
+
+### Split Toning
+
+Apply separate colors to highlights and shadows.
+
+**Location:** Isekai/Image/Blend
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `highlight_color` (STRING): Hex color for bright areas (default: "#FFD700")
+- `shadow_color` (STRING): Hex color for dark areas (default: "#1E3A8A")
+- `balance` (FLOAT, 0.0-1.0): Highlight/shadow balance (default: 0.5)
+- `intensity` (FLOAT, 0.0-1.0): Effect strength (default: 0.5)
+
+**Outputs:**
+- `image` (IMAGE): Split-toned result
+
+**Popular Presets:**
+- Golden hour: `#FFD700` (highlights) / `#1E3A8A` (shadows)
+- Cinematic teal/orange: `#FF8C42` / `#008B8B`
+- Cold/warm: `#87CEEB` / `#FF6347`
+
+---
+
+## Effects Nodes
+
+### Blur
+
+Apply Gaussian or Box blur.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `blur_type` (COMBO): Gaussian, Box
+- `radius` (FLOAT, 0.0-100.0): Blur radius (default: 5.0)
+
+**Outputs:**
+- `image` (IMAGE): Blurred result
+
+**Use Cases:**
+- Depth of field simulation
+- Soft focus portraits
+- Background defocus
+
+---
+
+### Chromatic Aberration
+
+RGB channel offset for lens distortion effect.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `offset` (INT, -50 to 50): Pixel shift amount (default: 5)
+- `direction` (COMBO): Horizontal, Vertical, Both
+
+**Outputs:**
+- `image` (IMAGE): Aberrated result
+
+<Aside type="caution">
+Positive offset shifts red outward, negative shifts blue outward. Use sparingly for realistic lens effects.
+</Aside>
+
+---
+
+### Color Filter
+
+Apply Sepia, Grayscale, or Black & White filters.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `filter_type` (COMBO): Sepia, Grayscale, Black & White, None
+- `intensity` (FLOAT, 0.0-1.0): Blend with original (default: 1.0)
+
+**Outputs:**
+- `image` (IMAGE): Filtered result
+
+**Filter Modes:**
+- **Sepia**: Vintage warm tone
+- **Grayscale**: Full desaturation
+- **Black & White**: High contrast monochrome
+- **None**: Pass-through (no effect)
+
+---
+
+### Edge Enhance
+
+Enhance or detect edges in images.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `mode` (COMBO): Enhance, Enhance More, Find Edges
+- `intensity` (FLOAT, 0.0-1.0): Effect strength (default: 1.0)
+
+**Outputs:**
+- `image` (IMAGE): Edge-enhanced result
+
+**Use Cases:**
+- Sharpen detail
+- Create line art from photos
+- Enhance texture definition
+
+---
+
+### Glare
+
+Add bloom/glow to bright areas.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `threshold` (INT, 0-255): Brightness threshold for glow (default: 200)
+- `intensity` (FLOAT, 0.0-2.0): Glow strength (default: 0.5)
+- `radius` (FLOAT, 1.0-50.0): Glow spread (default: 10.0)
+
+**Outputs:**
+- `image` (IMAGE): Result with glare
+
+**Tips:**
+- Lower threshold = more areas glow
+- Higher intensity = stronger effect
+- Larger radius = softer, wider glow
+
+---
+
+### Grain
+
+Add film grain or noise texture.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `intensity` (FLOAT, 0.0-1.0): Grain amount (default: 0.1)
+- `grain_type` (COMBO): Gaussian, Uniform, Salt & Pepper
+- `monochrome` (BOOLEAN): Same grain for all channels (default: True)
+
+**Outputs:**
+- `image` (IMAGE): Grainy result
+
+**Grain Types:**
+- **Gaussian**: Natural film grain
+- **Uniform**: Even noise distribution
+- **Salt & Pepper**: High contrast speckles
+
+---
+
+### Invert
+
+Invert all image colors.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+
+**Outputs:**
+- `image` (IMAGE): Inverted result
+
+**Simple but useful for:**
+- Creating negative effects
+- Inverting masks
+- Artistic treatments
+
+---
+
+### Pixelate
+
+Create mosaic/pixel art effects.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `pixel_size` (INT, 1-100): Size of pixels (default: 10)
+- `sampling` (COMBO): Nearest, Bilinear
+
+**Outputs:**
+- `image` (IMAGE): Pixelated result
+
+**Tips:**
+- **Nearest**: Sharp pixel edges (true pixel art)
+- **Bilinear**: Smooth pixel edges (soft mosaic)
+
+---
+
+### Posterize
+
+Reduce color levels for poster effect.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `bits` (INT, 1-8): Bits per channel (default: 4)
+
+**Outputs:**
+- `image` (IMAGE): Posterized result
+
+**Bit Levels:**
+- 1 bit = 2 colors per channel (8 total colors)
+- 4 bits = 16 colors per channel (4096 total)
+- 8 bits = 256 colors per channel (16.7M total - no effect)
+
+---
+
+### Sharpen
+
+Sharpen images with Unsharp Mask.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `method` (COMBO): Sharpen, Unsharp Mask
+- `radius` (FLOAT, 0.0-10.0): Mask radius (default: 2.0)
+- `percent` (INT, 0-500): Sharpening strength (default: 150)
+- `threshold` (INT, 0-255): Edge detection threshold (default: 3)
+
+**Outputs:**
+- `image` (IMAGE): Sharpened result
+
+**Method Differences:**
+- **Sharpen**: Simple sharpening filter
+- **Unsharp Mask**: Advanced with radius, percent, threshold control
+
+---
+
+### Vignette
+
+Darken edges with radial gradient.
+
+**Location:** Isekai/Image/Effects
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `intensity` (FLOAT, 0.0-1.0): Darkness amount (default: 0.5)
+- `radius` (FLOAT, 0.0-1.0): Effect start point (default: 0.8)
+- `softness` (FLOAT, 0.0-1.0): Edge falloff (default: 0.5)
+
+**Outputs:**
+- `image` (IMAGE): Vignetted result
+
+**Tips:**
+- Radius 1.0 = vignette starts at edges
+- Radius 0.5 = vignette starts halfway
+- Higher softness = smoother gradient
+
+---
+
+## Transform Nodes
+
+### Crop
+
+Crop images to specified region.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `x` (INT): Left edge position (default: 0)
+- `y` (INT): Top edge position (default: 0)
+- `width` (INT): Crop width (default: 512)
+- `height` (INT): Crop height (default: 512)
+- `from_center` (BOOLEAN): Use x,y as center point (default: False)
+
+**Outputs:**
+- `image` (IMAGE): Cropped result
+
+---
+
+### Flip
+
+Flip images horizontally, vertically, or both.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `direction` (COMBO): Horizontal, Vertical, Both
+
+**Outputs:**
+- `image` (IMAGE): Flipped result
+
+---
+
+### Rotate
+
+Rotate images by any angle.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `angle` (FLOAT, -360 to 360): Rotation angle in degrees (default: 0)
+- `expand` (BOOLEAN): Expand canvas to fit rotated image (default: False)
+- `fill_color` (STRING): Background color hex code (default: "#000000")
+- `resample` (COMBO): Nearest, Bilinear, Bicubic
+
+**Outputs:**
+- `image` (IMAGE): Rotated result
+
+**Resample Quality:**
+- **Nearest**: Fastest, pixelated
+- **Bilinear**: Good balance
+- **Bicubic**: Highest quality, slower
+
+---
+
+### Scale
+
+Resize images with quality control.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `scale_method` (COMBO): Factor, Dimensions, Percentage
+- `scale_x` (FLOAT, 0.01-10.0): Horizontal scale (default: 1.0)
+- `scale_y` (FLOAT, 0.01-10.0): Vertical scale (default: 1.0)
+- `width` (INT, 1-8192): Target width if using Dimensions (default: 512)
+- `height` (INT, 1-8192): Target height if using Dimensions (default: 512)
+- `resampling` (COMBO): Nearest, Bilinear, Bicubic, Lanczos
+- `maintain_aspect` (BOOLEAN): Keep aspect ratio (default: True)
+
+**Outputs:**
+- `image` (IMAGE): Scaled result
+
+**Scale Methods:**
+- **Factor**: Multiply by scale_x and scale_y
+- **Dimensions**: Set exact width/height
+- **Percentage**: Scale_x/scale_y as percentages
+
+**Resampling:**
+- **Lanczos**: Best quality for downscaling
+- **Bicubic**: Best quality for upscaling
+- **Bilinear**: Good general purpose
+- **Nearest**: Pixel art style
+
+---
+
+### Transform
+
+Combined rotate, scale, and translate.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `rotate` (FLOAT, -360 to 360): Rotation angle (default: 0)
+- `scale` (FLOAT, 0.1-10.0): Uniform scale factor (default: 1.0)
+- `translate_x` (INT, -2000 to 2000): Horizontal shift (default: 0)
+- `translate_y` (INT, -2000 to 2000): Vertical shift (default: 0)
+- `resample` (COMBO): Nearest, Bilinear, Bicubic
+
+**Outputs:**
+- `image` (IMAGE): Transformed result
+
+**Use Case:**
+- Apply multiple transforms in one node for efficiency
+
+---
+
+### Translate
+
+Shift images horizontally or vertically.
+
+**Location:** Isekai/Image/Transform
+
+**Inputs:**
+- `image` (IMAGE): Input image
+- `x` (INT, -2000 to 2000): Horizontal shift in pixels (default: 0)
+- `y` (INT, -2000 to 2000): Vertical shift in pixels (default: 0)
+- `fill_color` (STRING): Background color hex code (default: "#000000")
+
+**Outputs:**
+- `image` (IMAGE): Translated result
+
+**Tips:**
+- Positive X = shift right
+- Negative X = shift left
+- Positive Y = shift down
+- Negative Y = shift up
+
+---
+
+## Upload and Save
+
+### Isekai Upload
+
+Upload generated images directly to Isekai platform with compression.
+
+**Location:** Isekai/Upload
+
+**Inputs:**
+- `image` (IMAGE): Image to upload
+- `title` (STRING): Artwork title (max 200 characters)
+- `api_key` (STRING, optional): Isekai API key (uses ISEKAI_API_KEY env var if empty)
+- `tags` (STRING, optional): Comma-separated tags
+- `format` (COMBO): JPEG, PNG (default: JPEG)
+- `quality` (INT, 1-100): Compression quality (default: 90)
+
+**Outputs:**
+- `image` (IMAGE): Pass-through for preview
+
+**Compression:**
+- JPEG quality 90: ~80-90% size reduction, excellent quality
+- JPEG quality 75-85: ~85-92% size reduction, very good quality
+- PNG: Lossless, ~20-30% compression
+
+<Aside type="tip">
+See [Setting Up API Key](/comfyui/setting-up-api-key) for configuration details.
+</Aside>
+
+---
+
+### Compress and Save
+
+Save compressed images to disk with format control.
+
+**Location:** Isekai/IO
+
+**Inputs:**
+- `images` (IMAGE): Images to save
+- `filename` (STRING): Base filename (default: "isekai")
+- `format` (COMBO): JPEG, PNG, WEBP (default: JPEG)
+- `quality` (INT, 1-100): Compression quality (default: 90)
+
+**Outputs:**
+None (saves to `ComfyUI/output/` folder)
+
+**Filename Pattern:**
 ```
 {filename}_{counter}.{extension}
 
 Examples:
-- filename="artwork" → artwork_00001.jpg
-- filename="character" → character_00001.jpg
-- filename="render" → render_00001.webp
+- "artwork" → artwork_00001.jpg
+- "render" → render_00001.webp
 ```
 
-### Example Workflow
+**Format Tips:**
+- **PNG**: Lossless, supports transparency
+- **JPEG**: Lossy, smaller files, no transparency
+- **WEBP**: Modern format, excellent compression
+
+---
+
+## S3 Upload
+
+Upload images to AWS S3 or Cloudflare R2.
+
+**Location:** Isekai/Upload
+
+**Inputs:**
+- `image` (IMAGE): Image to upload
+- `bucket_name` (STRING): S3 bucket name
+- `object_key` (STRING): File path in bucket (e.g., "renders/image.jpg")
+- `endpoint_url` (STRING, optional): Custom endpoint for R2/MinIO
+- `region` (STRING): AWS region (default: "us-east-1")
+- `access_key_id` (STRING, optional): AWS access key (uses env var if empty)
+- `secret_access_key` (STRING, optional): AWS secret key (uses env var if empty)
+- `format` (COMBO): JPEG, PNG, WEBP
+- `quality` (INT, 1-100): Compression quality (default: 90)
+
+**Outputs:**
+- `image` (IMAGE): Pass-through
+- `url` (STRING): Public URL of uploaded image
+
+**Environment Variables:**
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
+- `AWS_DEFAULT_REGION`
+
+**Cloudflare R2 Example:**
+```
+endpoint_url: https://<account-id>.r2.cloudflarestorage.com
+bucket_name: my-bucket
+region: auto
+```
+
+---
+
+## Example Workflows
+
+### Cinematic Color Grade
 
 ```
-VAE Decode → Isekai Compress and Save
-             ↓ filename: "artwork"
-             ↓ format: JPEG
-             ↓ quality: 90
-             → Saves to: output/artwork_00001.jpg
+Image → Color Adjust (contrast 1.2) → Split Toning (teal/orange) → Vignette → Output
 ```
 
-<Aside>
-Counter auto-increments to avoid overwriting files. JPEG quality 90 is recommended for excellent quality with good compression.
+### Vintage Photo Effect
+
+```
+Image → Color Filter (Sepia, 0.8) → Grain (Gaussian, 0.15) → Levels (crush blacks) → Output
+```
+
+### Soft Portrait
+
+```
+Image → Blur (Gaussian, 3.0) → Blend (original, Screen, 0.3) → Vignette → Output
+```
+
+### Stylized Render
+
+```
+Image → Posterize (4 bits) → Edge Enhance → Color Ramp (creative grade) → Output
+```
+
+<Aside type="tip">
+**Pro Tip**: Chain multiple nodes to create complex effects. All image manipulation nodes are non-destructive and chainable.
 </Aside>

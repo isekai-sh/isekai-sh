@@ -1,58 +1,178 @@
 ---
 title: AI Integration Nodes
-description: Generate titles using Ollama LLMs for automated metadata
+description: Generate captions using Claude, OpenAI, Gemini, or Ollama for automated metadata
 ---
-import { Aside, Steps } from "@astrojs/starlight/components";
+import { Aside, Steps, Tabs, TabItem } from "@astrojs/starlight/components";
 
-## Isekai Ollama Summarizer
+Generate captions, titles, and descriptions for your artwork using your preferred AI model. Isekai integrates with 4 LLM providers: Claude (Anthropic), OpenAI GPT, Google Gemini, and local Ollama.
 
-Generate short, catchy titles from long prompts using local Ollama LLMs.
+## Quick Comparison
 
-**Location:** Isekai > Isekai Ollama Summarizer
+| Provider | Best For | Requires | Cost |
+|----------|----------|----------|------|
+| **Claude** | Long-form descriptions, nuanced captions | API key | Pay-per-use |
+| **OpenAI** | General purpose, widely available | API key | Pay-per-use |
+| **Gemini** | Google ecosystem, multimodal | API key | Free tier + paid |
+| **Ollama** | Privacy, offline use, no API costs | Local install | Free |
+
+<Aside type="tip">
+All LLM nodes share the same output format: a STRING containing the generated text. You can connect them to the Isekai Upload node's title input for automated metadata.
+</Aside>
+
+---
+
+## Claude
+
+Generate high-quality captions using Anthropic's Claude models.
+
+**Location:** Isekai/LLMs
+
+**Inputs:**
+- `text_input` (STRING): Prompt or context to generate from
+- `api_key` (STRING, optional): Claude API key (uses `ANTHROPIC_API_KEY` env var if empty)
+- `model` (COMBO): claude-3-5-sonnet-20241022, claude-3-5-haiku-20241022, claude-3-opus-20240229
+- `max_tokens` (INT, 1-4096): Maximum response length (default: 100)
+- `system_prompt` (STRING, optional): Custom instructions for Claude
+
+**Outputs:**
+- `generated_text` (STRING): Claude's response
+
+**Recommended Models:**
+- **claude-3-5-sonnet-20241022**: Best quality, most capable
+- **claude-3-5-haiku-20241022**: Fast and cost-effective
+- **claude-3-opus-20240229**: Highest intelligence (expensive)
+
+**Environment Variable:**
+```bash
+export ANTHROPIC_API_KEY="sk-ant-api03-..."
+```
+
+**Example:**
+```
+text_input: "A warrior woman in golden armor standing on a mountain peak"
+system_prompt: "Generate a short, catchy title (5-10 words max)"
+Output: "Golden Warrior Atop Mountain Peak"
+```
+
+<Aside>
+Get your API key at [console.anthropic.com](https://console.anthropic.com/)
+</Aside>
+
+---
+
+## OpenAI
+
+Generate captions using GPT-3.5 or GPT-4 models.
+
+**Location:** Isekai/LLMs
+
+**Inputs:**
+- `text_input` (STRING): Prompt or context to generate from
+- `api_key` (STRING, optional): OpenAI API key (uses `OPENAI_API_KEY` env var if empty)
+- `model` (COMBO): gpt-4-turbo, gpt-4, gpt-3.5-turbo
+- `max_tokens` (INT, 1-4096): Maximum response length (default: 100)
+- `system_prompt` (STRING, optional): Custom instructions for GPT
+
+**Outputs:**
+- `generated_text` (STRING): GPT's response
+
+**Recommended Models:**
+- **gpt-4-turbo**: Best balance of quality and speed
+- **gpt-3.5-turbo**: Fast and cost-effective
+- **gpt-4**: Highest quality (slower, expensive)
+
+**Environment Variable:**
+```bash
+export OPENAI_API_KEY="sk-..."
+```
+
+**Example:**
+```
+text_input: "portrait of a cyberpunk hacker in neon-lit alley"
+system_prompt: "Write a dramatic one-sentence description"
+Output: "A lone hacker emerges from shadows, neon reflections dancing across chrome implants."
+```
+
+<Aside>
+Get your API key at [platform.openai.com](https://platform.openai.com/)
+</Aside>
+
+---
+
+## Gemini
+
+Generate captions using Google's Gemini models.
+
+**Location:** Isekai/LLMs
+
+**Inputs:**
+- `text_input` (STRING): Prompt or context to generate from
+- `api_key` (STRING, optional): Gemini API key (uses `GEMINI_API_KEY` env var if empty)
+- `model` (COMBO): gemini-1.5-pro, gemini-1.5-flash, gemini-1.0-pro
+- `max_tokens` (INT, 1-8192): Maximum response length (default: 100)
+- `system_prompt` (STRING, optional): Custom instructions for Gemini
+
+**Outputs:**
+- `generated_text` (STRING): Gemini's response
+
+**Recommended Models:**
+- **gemini-1.5-pro**: Most capable, multimodal
+- **gemini-1.5-flash**: Fast and efficient
+- **gemini-1.0-pro**: Stable, proven model
+
+**Environment Variable:**
+```bash
+export GEMINI_API_KEY="AIza..."
+```
+
+**Example:**
+```
+text_input: "fantasy dragon breathing fire over medieval castle"
+system_prompt: "Create a short title suitable for an art gallery"
+Output: "Dragon's Fury: Castle Siege"
+```
+
+<Aside>
+Get your API key at [makersuite.google.com](https://makersuite.google.com/)
+</Aside>
+
+---
+
+## Ollama
+
+Generate captions using local open-source models (fully offline).
+
+**Location:** Isekai/LLMs
 
 **Requirements:** Ollama running locally ([ollama.com](https://ollama.com))
 
-### Inputs
+**Inputs:**
+- `text_input` (STRING): Prompt or context to generate from
+- `ollama_url` (STRING): Ollama server URL (default: "http://localhost:11434")
+- `model` (COMBO): Dynamically populated from your Ollama installation
 
-- `text_input` (STRING, required): Long prompt text to summarize
-- `ollama_url` (STRING, required): Ollama server URL (default: "http://localhost:11434")
-- `model` (DROPDOWN, required): LLM model to use (dynamically populated from Ollama)
+**Outputs:**
+- `generated_text` (STRING): Model's response
 
-### Outputs
-
-- `title_summary` (STRING): Generated short title (or error message)
-
-### Special Outputs
-
+**Special Outputs:**
 - `"Untitled"`: Empty input
 - `"Connection Failed"`: Cannot reach Ollama
 - `"Error: 404"`: Model not found
 
-### Supported Models
+**Popular Models:**
+- **llama3**: Meta's flagship model (best quality)
+- **mistral**: Fast and capable
+- **gemma**: Google's open model
+- **phi**: Microsoft's efficient model
 
-Common models include: `llama3`, `mistral`, `llama2`, `gemma`, etc.
-
-### Example
-
+**Example:**
 ```
-Input text_input:
-"A highly detailed digital painting of a fierce warrior woman wearing ornate golden armor, standing heroically on a mountain peak at sunset with dramatic clouds in the background, fantasy art style"
-
+text_input: "A highly detailed digital painting of a fierce warrior"
 model: llama3
-Output: "Warrior at Golden Sunset"
+Output: "Fierce Warrior Portrait"
 ```
 
-### Workflow Integration
-
-```
-CLIP Text Encode ──→ text_input ┐
-(full prompt)                    ├→ Ollama Summarizer → Isekai Upload
-                     model: llama3                      (auto-generated title)
-```
-
----
-
-## Setup Ollama
+### Setup Ollama
 
 <Steps>
 
@@ -74,44 +194,187 @@ CLIP Text Encode ──→ text_input ┐
 </Steps>
 
 <Aside type="tip">
-The Ollama Summarizer is perfect for generating concise, SEO-friendly titles for your artwork automatically. Combine it with the Isekai Upload node to automate the entire upload process.
+Ollama is perfect for privacy-sensitive workflows or when you want to avoid API costs. Models run entirely on your machine.
+</Aside>
+
+---
+
+## System Prompts Guide
+
+System prompts control how the AI generates text. Here are templates for common use cases:
+
+### Short Titles (5-10 words)
+```
+Generate a short, catchy title (5-10 words max) for this artwork. Be creative and evocative.
+```
+
+### Long Descriptions (1-2 sentences)
+```
+Write a vivid, detailed description of this artwork in 1-2 sentences. Focus on mood, composition, and key visual elements.
+```
+
+### SEO-Friendly Titles
+```
+Create an SEO-friendly title that describes the artwork clearly while being engaging. Include key visual elements.
+```
+
+### Poetic Captions
+```
+Write a poetic, atmospheric caption that captures the essence and mood of this artwork. Be artistic and evocative.
+```
+
+### Social Media Captions
+```
+Write an engaging social media caption for this artwork. Be concise, use emojis if appropriate, and make it shareable.
+```
+
+---
+
+## Environment Variables Setup
+
+Set API keys via environment variables for security (recommended over hardcoding in workflows).
+
+<Tabs>
+  <TabItem label="macOS/Linux">
+    Add to `~/.bashrc` or `~/.zshrc`:
+    ```bash
+    export ANTHROPIC_API_KEY="sk-ant-api03-..."
+    export OPENAI_API_KEY="sk-..."
+    export GEMINI_API_KEY="AIza..."
+    ```
+    Then restart ComfyUI.
+  </TabItem>
+
+  <TabItem label="Windows">
+    Set via System Environment Variables:
+    1. Open System Properties > Environment Variables
+    2. Add New User Variable:
+       - `ANTHROPIC_API_KEY` = `sk-ant-api03-...`
+       - `OPENAI_API_KEY` = `sk-...`
+       - `GEMINI_API_KEY` = `AIza...`
+    3. Restart ComfyUI
+  </TabItem>
+
+  <TabItem label="Docker">
+    Add to `docker-compose.yml`:
+    ```yaml
+    services:
+      comfyui:
+        environment:
+          - ANTHROPIC_API_KEY=sk-ant-api03-...
+          - OPENAI_API_KEY=sk-...
+          - GEMINI_API_KEY=AIza...
+    ```
+  </TabItem>
+</Tabs>
+
+---
+
+## Example Workflows
+
+### Auto-Title Generation
+
+```
+Dynamic String → CLIP Text Encode → Sampler → VAE Decode
+(random prompts)                                    ↓
+                                            Claude/OpenAI/Gemini
+                                            (generate title)
+                                                    ↓
+                                              Isekai Upload
+                                              (auto-populated title)
+```
+
+### Batch Character Renders with AI Titles
+
+```
+Round Robin ──→ Tag Selector ──→ Concatenate ──→ CLIP Text Encode ──→ Sampler
+(characters)    (char tags)      (full prompt)                           ↓
+                                                                     VAE Decode
+                                                                          ↓
+                                  ┌─────────────────── (pass prompt)─────┘
+                                  ↓
+                           Ollama (generate title)
+                                  ↓
+                           Isekai Upload (with AI title)
+```
+
+### Multi-Model Caption Comparison
+
+```
+Image → Color Adjust → Vignette → [Split to 3 paths]
+                                        ↓
+                            ┌───────────┼───────────┐
+                            ↓           ↓           ↓
+                          Claude     OpenAI      Gemini
+                         (title)    (title)     (title)
+                            ↓           ↓           ↓
+                       [Compare outputs and choose best]
+```
+
+---
+
+## Cost Comparison (Approximate)
+
+| Provider | Model | Cost per 1M tokens (input) | Cost per 1M tokens (output) |
+|----------|-------|---------------------------|----------------------------|
+| Claude | Sonnet 3.5 | $3.00 | $15.00 |
+| Claude | Haiku 3.5 | $1.00 | $5.00 |
+| OpenAI | GPT-4 Turbo | $10.00 | $30.00 |
+| OpenAI | GPT-3.5 Turbo | $0.50 | $1.50 |
+| Gemini | Pro 1.5 | $1.25 | $5.00 |
+| Gemini | Flash 1.5 | $0.075 | $0.30 |
+| Ollama | All models | **Free** | **Free** |
+
+<Aside type="note">
+For generating short titles (50-100 tokens), costs are negligible. A typical title generation costs $0.0001-0.001 per request.
 </Aside>
 
 ---
 
 ## Tips for Better Results
 
-- **Use specific prompts**: The better your input prompt, the better the generated title
-- **Try different models**: Each model has different strengths (llama3 is generally good for creative titles)
-- **Keep Ollama running**: Make sure Ollama server is running before using the node
-- **Check console output**: The node prints helpful debugging information to the ComfyUI console
+1. **Be specific in prompts**: Include key visual elements from your artwork
+2. **Use system prompts**: Control output length and style
+3. **Test different models**: Each has different strengths
+4. **Keep max_tokens low**: For titles, 50-100 tokens is plenty
+5. **Use Ollama for experimentation**: Free and unlimited testing
 
 ---
 
-## Common Use Cases
+## Troubleshooting
 
-### Auto-Title Generation
+### "Connection Failed"
 
-```
-Dynamic String ──→ CLIP Text Encode ──→ Sampler ──→ VAE Decode
-(random prompts)                                         ↓
-                                                  Ollama Summarizer ──→ Isekai Upload
-                                                  (auto-generate title)
+**Ollama only**: Ensure Ollama is running
+```bash
+ollama serve
 ```
 
-### Character Tags with AI Titles
+### "Invalid API Key"
 
-```
-Round Robin ──→ Tag Selector ──→ Concatenate ──→ CLIP Text Encode ──→ Sampler
-(characters)    (character tags)  (full prompt)                           ↓
-                                                                      VAE Decode
-                                                                           ↓
-                                  Ollama Summarizer ←──────────── (pass prompt text)
-                                  (generate title)                         ↓
-                                         ↓                            Isekai Upload
-                                     title ──────────────────────→  (upload with AI title)
+**Cloud models**: Verify your API key is correct and has credits
+```bash
+# Test Claude
+curl https://api.anthropic.com/v1/messages -H "x-api-key: $ANTHROPIC_API_KEY"
+
+# Test OpenAI
+curl https://api.openai.com/v1/models -H "Authorization: Bearer $OPENAI_API_KEY"
+
+# Test Gemini
+curl "https://generativelanguage.googleapis.com/v1/models?key=$GEMINI_API_KEY"
 ```
 
-<Aside>
-**Advanced Tip**: You can chain multiple Ollama Summarizer nodes to generate different metadata fields (title, description, tags) from the same prompt by using different system prompts or models.
-</Aside>
+### "Model not found"
+
+**Ollama**: Pull the model first
+```bash
+ollama pull llama3
+```
+
+**Cloud models**: Check model name spelling (case-sensitive)
+
+### Empty or Truncated Responses
+
+- Increase `max_tokens` parameter
+- Simplify your prompt
+- Try a different model

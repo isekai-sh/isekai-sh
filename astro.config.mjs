@@ -5,6 +5,25 @@ import starlightThemeRapide from "starlight-theme-rapide";
 import starlightThemeNext from "starlight-theme-next";
 import sitemap from "@astrojs/sitemap";
 
+// Fetch latest isekai-core version from GitHub
+async function getLatestVersion() {
+  try {
+    const response = await fetch(
+      "https://api.github.com/repos/isekai-sh/isekai-core/releases/latest"
+    );
+    if (response.ok) {
+      const data = await response.json();
+      return data.tag_name; // Returns "v0.1.0-alpha.8" format
+    }
+  } catch (error) {
+    console.warn("Failed to fetch latest version:", error);
+  }
+  // Fallback version if API fails
+  return "v0.1.0-alpha.8";
+}
+
+const latestVersion = await getLatestVersion();
+
 export default defineConfig({
   site: "https://isekai.sh",
   integrations: [
@@ -29,7 +48,7 @@ export default defineConfig({
           link: "https://github.com/isekai-sh/isekai-core/blob/main/CHANGELOG.md",
           attrs: { target: "_blank", rel: "noopener" },
           badge: {
-            text: "v0.1.0-alpha.3",
+            text: latestVersion,
             variant: "default",
           },
         },
