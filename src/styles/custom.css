@@ -699,3 +699,34 @@ svg path,
 	background-clip: text;
 	-webkit-text-fill-color: transparent;
 }
+
+/* Mobile specific fixes */
+@media (max-width: 768px) {
+	/* Remove excessive top padding */
+	main,
+	article,
+	.content-panel {
+		padding-top: 1rem !important;
+	}
+
+	/* Hide gradient orbs on mobile to reduce visual clutter */
+	aside::before,
+	.starlight-aside::before,
+	.sl-card::before,
+	.card::before,
+	[data-card]::before,
+	.sl-link-card::before,
+	[data-card-grid] a::before {
+		display: none !important;
+	}
+
+	/* Remove hamburger white circle background */
+	header button,
+	header button[aria-expanded],
+	.mobile-menu-toggle,
+	button[aria-label*="menu" i] {
+		background: transparent !important;
+		border: none !important;
+		border-radius: 0 !important;
+	}
+}
