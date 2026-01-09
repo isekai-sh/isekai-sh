@@ -702,11 +702,23 @@ svg path,
 
 /* Mobile specific fixes */
 @media (max-width: 768px) {
-	/* Remove excessive top padding */
+	/* Reduce top padding but keep some space for navbar */
+	.main-frame,
 	main,
 	article,
 	.content-panel {
-		padding-top: 1rem !important;
+		padding-top: 2rem !important;
+	}
+
+	/* Remove bottom padding from content panel */
+	.content-panel {
+		padding-bottom: 0 !important;
+	}
+
+	/* Hide right sidebar on mobile */
+	.right-sidebar-container,
+	aside.right-sidebar {
+		display: none !important;
 	}
 
 	/* Hide gradient orbs on mobile to reduce visual clutter */
@@ -720,7 +732,15 @@ svg path,
 		display: none !important;
 	}
 
-	/* Remove hamburger white circle background */
+	/* Remove search button background and border on mobile */
+	header button[data-open-modal],
+	.site-search button,
+	button[aria-label*="Search" i] {
+		background: transparent !important;
+		border: none !important;
+	}
+
+	/* Remove hamburger button styling completely */
 	header button,
 	header button[aria-expanded],
 	.mobile-menu-toggle,
@@ -728,5 +748,18 @@ svg path,
 		background: transparent !important;
 		border: none !important;
 		border-radius: 0 !important;
+		box-shadow: none !important;
+		outline: none !important;
+		-webkit-tap-highlight-color: transparent !important;
+	}
+
+	/* Remove tap highlight and focus rings from all nav buttons */
+	header button:focus,
+	header button:active,
+	header a:focus,
+	header a:active {
+		outline: none !important;
+		box-shadow: none !important;
+		-webkit-tap-highlight-color: transparent !important;
 	}
 }
